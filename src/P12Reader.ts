@@ -1,7 +1,7 @@
 import fs from 'fs';
 import forge from 'node-forge';
 
-export interface P12ReaderResponse {
+export interface P12ReaderData {
   key: string | undefined;
   cert: string | undefined;
 }
@@ -61,53 +61,53 @@ class P12Reader {
     return pemKey;
   };
 
-
   /**
    * Get the certificate Key from a .p12 file
    * @param fileName filename.p12 with the full file path
    */
-  getKeyFromFile = (fileName: string): P12ReaderResponse => {
+  getKeyFromFile = (fileName: string): P12ReaderData => {
     try {
-       
       const p12File = fs.readFileSync(fileName, 'base64');
       const p12Der = forge.util.decode64(p12File);
       const p12Asn1 = forge.asn1.fromDer(p12Der);
       const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, this.passphrase);
 
-      const key =  this.getKeyFromP12(p12);
+      const key = this.getKeyFromP12(p12);
       const cert = this.getCertificateFromP12(p12);
 
       return {
         key,
-        cert
-      }
+        cert,
+      };
     } catch (err) {
-      throw new Error(`${err}: use path.resolve(__dirname, filename) if needed`);
+      throw new Error(
+        `${err}: use path.resolve(__dirname, filename) if needed`
+      );
     }
   };
 
   /**
    * Instead to read the file from the file system we can get from s3 bucket encoded
-   * @param p12file 
-   * @returns 
+   * @param p12file
+   * @returns
    */
 
-  getKeyFromStringBase64 = (p12file: string):P12ReaderResponse => {
-    try { 
+  getKeyFromStringBase64 = (p12file: string): P12ReaderData => {
+    try {
       const p12Der = forge.util.decode64(p12file);
       const p12Asn1 = forge.asn1.fromDer(p12Der);
       const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, this.passphrase);
 
-      const key=  this.getKeyFromP12(p12);
+      const key = this.getKeyFromP12(p12);
       const cert = this.getCertificateFromP12(p12);
       return {
         key,
-        cert
-      }
+        cert,
+      };
     } catch (err) {
       throw new Error(`${err}`);
     }
-  }
+  };
 }
 
 export default P12Reader;

@@ -10,5 +10,6 @@ module.exports = {
     '^src/(.*)$': '<rootDir>/src/$1',
   },
   preset: 'ts-jest',
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
   testPathIgnorePatterns: ['/node_modules/', '/.dist/'],
 };

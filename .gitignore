@@ -48,3 +48,4 @@ test-report.xml
 
 # Dist directory
 /dist
+*.p12
