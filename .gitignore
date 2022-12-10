@@ -20,7 +20,7 @@ junit.xml
 
 # misc
 .DS_Store
-*.pem
+#*.pem
 
 # debug
 npm-debug.log*
