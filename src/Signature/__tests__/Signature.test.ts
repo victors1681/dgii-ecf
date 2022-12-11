@@ -11,7 +11,7 @@ describe('Sign Documents', () => {
 
     const reader = new P12Reader(secret);
     const certs = reader.getKeyFromFile(
-      path.resolve(__dirname, 'sample/4303328_identity.p12')
+      path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
     );
 
     if (!certs.key || !certs.cert) {
