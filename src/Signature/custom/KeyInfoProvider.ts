@@ -6,9 +6,6 @@ class KeyInfoProvider extends FileKeyInfo {
 
   constructor(certificatePEM?: string | null | undefined) {
     super();
-    // if (!this instanceof KeyInfoProvider) {
-    //     return new KeyInfoProvider();
-    //   }
 
     if (Buffer.isBuffer(certificatePEM)) {
       certificatePEM = certificatePEM.toString('ascii');
@@ -23,7 +20,7 @@ class KeyInfoProvider extends FileKeyInfo {
     this._certificatePEM = certificatePEM;
   }
 
-  getKeyInfo(key: any, prefix: string) {
+  getKeyInfo = (key: any, prefix: string) => {
     let keyInfoXml;
 
     prefix = prefix || '';
@@ -32,7 +29,6 @@ class KeyInfoProvider extends FileKeyInfo {
     const certBodyInB64 = forge.util.encode64(
       forge.pem.decode(this._certificatePEM)[0].body
     );
-    //const certObj = forge.pki.certificateFromPem(this._certificatePEM);
 
     keyInfoXml = '<' + prefix + 'X509Data>';
 
@@ -43,11 +39,11 @@ class KeyInfoProvider extends FileKeyInfo {
     keyInfoXml += '</' + prefix + 'X509Data>';
 
     return keyInfoXml;
-  }
+  };
 
-  getKey(keyInfo?: Node): Buffer {
+  getKey = (keyInfo?: Node): Buffer => {
     return Buffer.from(this._certificatePEM);
-  }
+  };
 }
 
 export default KeyInfoProvider;

@@ -1,6 +1,6 @@
 import { SignedXml } from 'xml-crypto';
-import KeyInfoProvider from './KeyInfoProvider';
-import Digest from './Digest';
+import KeyInfoProvider from './custom/KeyInfoProvider';
+import Digest from './custom/Digest';
 import { DOMParser } from '@xmldom/xmldom';
 
 export type XMLTag = 'SemillaModel';

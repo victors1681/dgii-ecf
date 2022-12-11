@@ -2,7 +2,9 @@ import { ENVIRONMENT, BASE_URL } from 'src/networking';
 import { restClient } from './restClient';
 import FormData from 'form-data';
 import { Duplex, Readable } from 'stream';
-import fs from 'fs';
+import { AxiosError } from 'axios';
+import fs, { ReadStream } from 'fs';
+import string2fileStream from 'string-to-file-stream';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
   VALIDATE_SEED = 'Autenticacion/api/Autenticacion/ValidarSemilla',
@@ -12,6 +14,22 @@ export interface AuthToken {
   token: string;
   expira: string;
   expedido: string;
+}
+class ReadableString extends Readable {
+  private sent = false;
+
+  constructor(private str: string) {
+    super();
+  }
+
+  _read() {
+    if (!this.sent) {
+      this.push(Buffer.from(this.str));
+      this.sent = true;
+    } else {
+      this.push(null);
+    }
+  }
 }
 
 class RestApi {
@@ -57,10 +75,11 @@ class RestApi {
     try {
       const resource = this.getResource(ENDPOINTS.VALIDATE_SEED);
 
-      const buffer = Buffer.from(signedSeed, 'utf-8');
+      //Stream Readable
+      const stream = string2fileStream(signedSeed, { path: 'signed.xml' });
 
       const formData = new FormData();
-      formData.append('xml', buffer);
+      formData.append('xml', stream);
 
       const config = {
         headers: {
@@ -71,13 +90,13 @@ class RestApi {
       };
 
       const response = await restClient.postForm(resource, formData, config);
-      console.log('responseresponse', response.request);
 
       if (response.status === 200) {
         return response.data as AuthToken;
       }
     } catch (err) {
-      console.log('err', err);
+      const error = err as AxiosError;
+      console.log('err', error.response?.data);
       throw new Error(`${err}`);
     }
   };
