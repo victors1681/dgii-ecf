@@ -26,7 +26,10 @@ jobs:
           cd src/test_cert && 
           curl -H 'Authorization: ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
             -O \
-            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}     
+            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}
+      - name: adding env
+        env:
+          CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}                 
       - run: npm ci
       - run: npm run build --if-present
       - run: npm test
