@@ -26,9 +26,10 @@ jobs:
       - name: copy certificate
         run: |
           cd src/test_cert && 
-          curl -H 'Authorization: ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
-            -O \
-            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}    
+          curl --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
+          --header 'Accept: application/vnd.github.v3.raw' \
+          --remote-name \
+          --location ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}
       - run: cd src/test_cert && ls                   
       - run: npm ci
       - run: npm run build --if-present
