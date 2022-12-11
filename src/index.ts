@@ -1,8 +1,11 @@
 import dotenv from 'dotenv';
 import P12Reader from './P12Reader';
+import Signature from './Signature/Signature';
+import ECF from './ecf';
 dotenv.config();
 
 if (process.env.CURRENT_ENV !== 'test') {
 }
 
-export { P12Reader };
+export { ECF, P12Reader, Signature };
+export default ECF;

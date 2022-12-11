@@ -2,8 +2,9 @@ import { ENVIRONMENT } from 'src/networking';
 import RestApi, { AuthToken } from 'src/networking/RestApi';
 import { P12ReaderData } from 'src/P12Reader';
 import Signature from 'src/Signature/Signature';
+import { setAuthToken } from 'src/networking/restClient';
 
-class Auth {
+class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;
 
@@ -34,7 +35,13 @@ class Auth {
       const seedSigned = signature.signXml(seedXml, 'SemillaModel');
 
       //Get the token
-      const tokenData = this._api.getAuthTokenApi(seedSigned);
+      const tokenData = await this._api.getAuthTokenApi(seedSigned);
+
+      if (!tokenData) {
+        throw new Error('Unable to get the token');
+      }
+      //set token on axios
+      setAuthToken(tokenData?.token);
 
       if (!tokenData) {
         throw new Error('Token is not defined');
@@ -47,4 +54,4 @@ class Auth {
   };
 }
 
-export default Auth;
+export default ECF;
