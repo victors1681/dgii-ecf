@@ -21,15 +21,14 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+        env:
+          CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}      
       - name: copy certificate
         run: |
           cd src/test_cert && 
           curl -H 'Authorization: ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
             -O \
-            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}
-      - name: adding env
-        env:
-          CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}                 
+            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}           
       - run: npm ci
       - run: npm run build --if-present
       - run: npm test
