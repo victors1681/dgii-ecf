@@ -145,7 +145,7 @@ Test watcher
 
 ## Authors
 
-- [@victors1681](https://www.github.com/victors1681)
+- [Victor Santos](https://www.github.com/victors1681)
 
 
 ## 🔗 Links
