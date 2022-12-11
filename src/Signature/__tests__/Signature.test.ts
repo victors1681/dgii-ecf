@@ -8,10 +8,6 @@ import xpath from 'xpath';
 describe('Sign Documents', () => {
   it('Sign Seed', () => {
     const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-    console.log(
-      'process.env.CERTIFICATE_TEST_PASSWORD',
-      process.env.CERTIFICATE_TEST_PASSWORD
-    );
 
     const reader = new P12Reader(secret);
     const certs = reader.getKeyFromFile(
