@@ -5,7 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
+env:
+  CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}      
+  
 jobs:
   build:
 
@@ -20,7 +22,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}   
+          node-version: ${{ matrix.node-version }}
       - name: copy certificate
         run: |
           cd src/test_cert && 
@@ -29,8 +31,5 @@ jobs:
             -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}           
       - run: npm ci
       - run: npm run build --if-present
-      - name: testing
-        env:
-          CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}   
-        run: npm test
+      - run: npm test
       - run: rm -rf src/test_cert
