@@ -22,13 +22,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: copy certificate
-        run: cd src/test_cert
-      - run: |
+        run: |
+          cd src/test_cert && 
           curl -H 'Authorization: ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
             -O \
-            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}
-      - run: ls      
-      - run: cd ../..      
+            -L ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}     
       - run: npm ci
       - run: npm run build --if-present
       - run: npm test
