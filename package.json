@@ -1,6 +1,6 @@
 {
   "name": "dgii-ecf",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Este paquete contiene las herramientas necesarias para autenticar y firmar archivos eletrónicos para realizar la facturación electrónica para aplicaciones nodejs.",
   "private": false,
   "license": "MIT",
