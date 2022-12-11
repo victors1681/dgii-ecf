@@ -22,7 +22,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: copy certificate
-        run: cd src/test_cert
+        run: pwd
+      - run: cd src/test_cert
       - run: |
           curl -H 'Authorization: ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
             -O \
