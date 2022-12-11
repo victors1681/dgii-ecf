@@ -8,11 +8,14 @@ class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;
 
-  constructor(p12ReaderData: P12ReaderData) {
-    this._api = new RestApi(ENVIRONMENT.DEV);
+  constructor(
+    p12ReaderData: P12ReaderData,
+    environment: ENVIRONMENT = ENVIRONMENT.DEV
+  ) {
+    this._api = new RestApi(environment);
     this._p12ReaderData = p12ReaderData;
   }
-  getAccessToken = async (): Promise<AuthToken | undefined> => {
+  authenticate = async (): Promise<AuthToken | undefined> => {
     try {
       const seedXml = await this._api.getSeedApi();
       //Sign the seed

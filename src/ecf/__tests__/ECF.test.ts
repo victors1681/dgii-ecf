@@ -1,7 +1,7 @@
 import path from 'path';
 import P12Reader from 'src/P12Reader';
 import ECF from '../ECF';
-import { restClient } from 'src/networking';
+import { ENVIRONMENT, restClient } from 'src/networking';
 describe('Test Authentication flow', () => {
   it('Testing path', async () => {
     const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
@@ -15,8 +15,8 @@ describe('Test Authentication flow', () => {
       return;
     }
 
-    const auth = new ECF(certs);
-    const tokenData = await auth.getAccessToken();
+    const auth = new ECF(certs, ENVIRONMENT.DEV);
+    const tokenData = await auth.authenticate();
     expect(tokenData?.token).toBeDefined();
     expect(restClient.defaults.headers.common['Authorization']).toBeDefined();
   });
