@@ -19,24 +19,11 @@ Install dgii-ecf with npm
 
 ```bash
   npm install dgii-ecf
-  cd dgii-ecf
 ```
-    
-## Deployment
-
-This package expose three main clases `ECF`, `P12Reader`, `Signature`
-
-```javascript
-import ECF from 'dgii-ecf'
-
-```
-
-```bash
-  npm run deploy
-```
-
 
 ## Usage/Examples
+
+This package expose three main clases `ECF`, `P12Reader`, `Signature`
 
 #### Requirements
 You need a valid certificate if you don't have one you need to request a new one your business or client business [DigiFirma](https://www.camarasantodomingo.do/digifirma/FormularioWeb/)
