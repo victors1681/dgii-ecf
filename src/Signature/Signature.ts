@@ -3,7 +3,7 @@ import KeyInfoProvider from './custom/KeyInfoProvider';
 import Digest from './custom/Digest';
 import { DOMParser } from '@xmldom/xmldom';
 
-export type XMLTag = 'SemillaModel';
+export type XMLTag = 'SemillaModel' | 'ECF';
 
 class Signature {
   private _privateKey = '';
@@ -18,7 +18,7 @@ class Signature {
    * Remove empty spaces and new lines
    * @param node
    */
-  cleanNodes = (node: any) => {
+  private cleanNodes = (node: any) => {
     for (let n = 0; n < node.childNodes.length; n++) {
       const child = node.childNodes[n];
       if (
@@ -56,7 +56,7 @@ class Signature {
 
     sig.signingKey = this._privateKey;
 
-    const doc = new DOMParser().parseFromString(xml);
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
     //clean xml
     this.cleanNodes(doc);
     //sign

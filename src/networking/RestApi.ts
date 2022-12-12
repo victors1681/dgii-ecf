@@ -1,13 +1,13 @@
-import { ENVIRONMENT, BASE_URL } from 'src/networking';
+import { ENVIRONMENT } from 'src/networking';
 import { restClient } from './restClient';
 import FormData from 'form-data';
-import { Duplex, Readable } from 'stream';
 import { AxiosError } from 'axios';
-import fs, { ReadStream } from 'fs';
 import string2fileStream from 'string-to-file-stream';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
   VALIDATE_SEED = 'Autenticacion/api/Autenticacion/ValidarSemilla',
+  SEND_INVOICE = 'Recepcion/api/FacturasElectronicas',
+  APPROVE = 'AprobacionComercial/api/AprobacionComercial',
 }
 
 export interface AuthToken {
@@ -15,21 +15,11 @@ export interface AuthToken {
   expira: string;
   expedido: string;
 }
-class ReadableString extends Readable {
-  private sent = false;
 
-  constructor(private str: string) {
-    super();
-  }
-
-  _read() {
-    if (!this.sent) {
-      this.push(Buffer.from(this.str));
-      this.sent = true;
-    } else {
-      this.push(null);
-    }
-  }
+export interface InvoiceResponse {
+  trackId?: string;
+  error?: string;
+  mensaje?: string;
 }
 
 class RestApi {
@@ -97,6 +87,39 @@ class RestApi {
     } catch (err) {
       const error = err as AxiosError;
       console.log('err', error.response?.data);
+      throw new Error(`${err}`);
+    }
+  };
+
+  /**
+   * Send the signed invoice to DGII
+   * @param signedXml XML signed invoice
+   * @param fileName the composition of the file name should be RNC+e-NCF.xml example: “101672919E3100000001.xml”
+   * @returns
+   */
+  sendElectronicInvoiceApi = async (
+    signedInvoice: string,
+    fileName: string
+  ): Promise<InvoiceResponse | undefined> => {
+    try {
+      const resource = this.getResource(ENDPOINTS.SEND_INVOICE);
+
+      const stream = string2fileStream(signedInvoice, {
+        path: fileName,
+      });
+
+      const formData = new FormData();
+      formData.append('xml', stream);
+
+      const response = await restClient.post(resource, formData);
+
+      if (response.status === 200) {
+        return response.data as InvoiceResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      console.log('err', error.response?.data);
+      console.log('err', error.response);
       throw new Error(`${err}`);
     }
   };

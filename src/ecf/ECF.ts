@@ -55,6 +55,24 @@ class ECF {
       throw new Error(`${err}`);
     }
   };
+
+  /**
+   * Send the signed invoice to DGII
+   * @param signedXml XML signed invoice
+   * @param fileName the composition of the file name should be RNC+e-NCF.xml example: “101672919E3100000001.xml”
+   * @returns
+   */
+  sendInvoice = async (signedXml: string, fileName: string) => {
+    try {
+      const response = await this._api.sendElectronicInvoiceApi(
+        signedXml,
+        fileName
+      );
+      return response;
+    } catch (err) {
+      throw new Error(`${err}`);
+    }
+  };
 }
 
 export default ECF;

@@ -12,7 +12,7 @@ export const restClient = axios.create({
 });
 
 export const setAuthToken = (token: string) => {
-  restClient.defaults.headers.common['Authorization'] = token;
+  restClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 };
 
 export default restClient;
