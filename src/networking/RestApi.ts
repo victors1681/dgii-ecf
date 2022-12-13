@@ -3,26 +3,15 @@ import { restClient } from './restClient';
 import FormData from 'form-data';
 import { AxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
-import fs from 'fs';
-import streamLength from 'stream-length';
 
+import streamLength from 'stream-length';
+import { TrackingStatusResponse, AuthToken, InvoiceResponse } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
-  VALIDATE_SEED = 'Autenticacion/api/Autenticacion/ValidarSemilla',
-  SEND_INVOICE = 'Recepcion/api/FacturasElectronicas',
-  APPROVE = 'AprobacionComercial/api/AprobacionComercial',
-}
-
-export interface AuthToken {
-  token: string;
-  expira: string;
-  expedido: string;
-}
-
-export interface InvoiceResponse {
-  trackId?: string;
-  error?: string;
-  mensaje?: string;
+  VALIDATE_SEED = 'autenticacion/api/Autenticacion/ValidarSemilla',
+  SEND_INVOICE = 'recepcion/api/FacturasElectronicas',
+  APPROVE = 'aprobacionComercial/api/AprobacionComercial',
+  TRACK_STATUS = 'consultaresultado/api/Consultas/Estado',
 }
 
 class RestApi {
@@ -129,6 +118,29 @@ class RestApi {
 
       if (response.status === 200) {
         return response.data as InvoiceResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${error}`);
+    }
+  };
+
+  /**
+   * Get the status using the track id generated after send a new invoice or other document
+   * @param trackId string
+   * @returns promise with the tracking status
+   */
+
+  statusTrackIdApi = async (
+    trackId: string
+  ): Promise<TrackingStatusResponse | undefined> => {
+    try {
+      const resource = this.getResource(ENDPOINTS.TRACK_STATUS);
+
+      const response = await restClient.get(resource, { params: { trackId } });
+
+      if (response.status === 200) {
+        return response.data as TrackingStatusResponse;
       }
     } catch (err) {
       const error = err as AxiosError;

@@ -1,9 +1,9 @@
 import { ENVIRONMENT } from 'src/networking';
-import RestApi, { AuthToken } from 'src/networking/RestApi';
+import RestApi from 'src/networking/RestApi';
 import { P12ReaderData } from 'src/P12Reader';
 import Signature from 'src/Signature/Signature';
 import { setAuthToken } from 'src/networking/restClient';
-
+import { AuthToken } from 'src/networking/types';
 class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;
@@ -71,6 +71,15 @@ class ECF {
       return response;
     } catch (err) {
       throw new Error(`${err}`);
+    }
+  };
+
+  statusTrackId = async (trackId: string) => {
+    try {
+      const response = await this._api.statusTrackIdApi(trackId);
+      return response;
+    } catch (error) {
+      throw new Error(`${error}`);
     }
   };
 }
