@@ -50,8 +50,8 @@ describe('Test Authentication flow', () => {
     const noEcf = '000000001'; //Sequence
     const fileName = `${rnc}${noEcf}.xml`;
     const signedXml = signature.signXml(xmlFile, 'ECF');
-    //const response = await ecf.sendInvoice(signedXml, fileName);
+    const response = await ecf.sendInvoice(signedXml, fileName);
 
-    expect(signedXml).toBeDefined();
+    expect(response?.trackId).toBeDefined();
   });
 });

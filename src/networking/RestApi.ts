@@ -3,6 +3,9 @@ import { restClient } from './restClient';
 import FormData from 'form-data';
 import { AxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
+import fs from 'fs';
+import streamLength from 'stream-length';
+
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
   VALIDATE_SEED = 'Autenticacion/api/Autenticacion/ValidarSemilla',
@@ -108,19 +111,28 @@ class RestApi {
         path: fileName,
       });
 
-      const formData = new FormData();
-      formData.append('xml', stream);
+      const sLength = await streamLength(stream);
 
-      const response = await restClient.post(resource, formData);
+      const options = {
+        knownLength: sLength, //Super important!! the DGII server need the Calculation of the content-length otherwise will reject the request saying "Multipart cannot be empty"
+      };
+
+      const formData = new FormData();
+      formData.append('xml', stream, options);
+
+      const response = await restClient.post(resource, formData, {
+        headers: {
+          ...formData.getHeaders(),
+          'Content-Length': formData.getLengthSync(), //Super important calculate dynamically! I spent so much time figuring this out! OHHHHHH I'm dead!
+        },
+      });
 
       if (response.status === 200) {
         return response.data as InvoiceResponse;
       }
     } catch (err) {
       const error = err as AxiosError;
-      console.log('err', error.response?.data);
-      console.log('err', error.response);
-      throw new Error(`${err}`);
+      throw new Error(`${error}`);
     }
   };
 }
