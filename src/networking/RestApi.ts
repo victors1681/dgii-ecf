@@ -79,7 +79,7 @@ class RestApi {
     } catch (err) {
       const error = err as AxiosError;
       console.log('err', error.response?.data);
-      throw new Error(`${err}`);
+      throw new Error(`${JSON.stringify(error.response?.data)}`);
     }
   };
 
@@ -121,7 +121,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${error}`);
+      throw new Error(`${JSON.stringify(error.response?.data)}`);
     }
   };
 
@@ -144,7 +144,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${error}`);
+      throw new Error(`${JSON.stringify(error.response?.data)}`);
     }
   };
 }

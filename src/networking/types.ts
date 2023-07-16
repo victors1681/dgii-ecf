@@ -27,7 +27,7 @@ export interface InvoiceResponse {
 }
 
 export enum TrackStatusEnum {
-  NOT_FOUND = 'No Encontrado',
+  NOT_FOUND = 'No encontrado.',
   ACCEPTED = 'Aceptado',
   IN_PROCESS = 'En Proceso',
   CONDITIONAL_ACCEPTED = 'Aceptado Condicional',

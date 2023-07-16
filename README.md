@@ -112,7 +112,7 @@ const signedXml = signature.signXml(seedXml, 'SemillaModel');
 This repo performs the unit test connecting to the DGII test environment
 
 - First:  In order to pass the test locally the first step is to plate your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
-- Second: create a `.env` file and set a variable `CERTIFICATE_TEST_PASSWORD=''` with the passphrase secret of your certificate.
+- Second: create a `.env` file and set a variable `CERTIFICATE_TEST_PASSWORD='_YOUT_PASSWORD_'` with the passphrase secret of your certificate.
 
 Install dependencies
 

@@ -1,0 +1,74 @@
+{
+	"ECF": {
+		"Encabezado": {
+			"Version": "1.0",
+			"IdDoc": {
+				"TipoeCF": "31",
+				"eNCF": "E310005000099",
+				"FechaVencimientoSecuencia": "31-12-2025",
+				"IndicadorEnvioDiferido": "1",
+				"IndicadorMontoGravado": "0",
+				"IndicadorServicioTodoIncluido": "1",
+				"TipoIngresos": "05",
+				"TipoPago": "2",
+				"FechaLimitePago": "07-08-2023",
+				"TotalPaginas": 1
+			},
+			"Emisor": {
+				"RNCEmisor": "130862346",
+				"RazonSocialEmisor": "IT SOLUCLICK SRL",
+				"DireccionEmisor": "DireccionEmisor1",
+				"FechaEmision": "14-07-2023"
+			},
+			"Comprador": {
+				"RNCComprador": "101023122",
+				"RazonSocialComprador": "Cliente Prueba SRL"
+			},
+			"Totales": {
+				"MontoGravadoTotal": 540.0,
+				"MontoGravadoI1": 540.0,
+				"MontoExento": 0,
+				"ITBIS1": 18,
+				"TotalITBIS": 97.20,
+				"TotalITBIS1": 97.20,
+				"MontoTotal": 637.20,
+				"MontoNoFacturable": 0
+			}
+		},
+		"DetallesItems": {
+			"Item": {
+				"NumeroLinea": "1",
+				"IndicadorFacturacion": "1",
+				"NombreItem": "Producto 1",
+				"IndicadorBienoServicio": "1",
+				"CantidadItem": 24,
+				"UnidadMedida": "43",
+				"PrecioUnitarioItem": 25.0,
+				"DescuentoMonto": 60.0,
+				"TablaSubDescuento": {
+					"SubDescuento": {
+						"TipoSubDescuento": "%",
+						"SubDescuentoPorcentaje": 10.0,
+						"MontoSubDescuento": 60.0
+					}
+				},
+				"MontoItem": 540.0
+			}
+		},
+		"Paginacion": {
+			"Pagina": {
+				"PaginaNo": 1,
+				"NoLineaDesde": 1,
+				"NoLineaHasta": 1,
+				"SubtotalMontoGravadoPagina": 540.0,
+				"SubtotalMontoGravado1Pagina": 540.0,
+				"SubtotalExentoPagina": 0,
+				"SubtotalItbisPagina": 97.20,
+				"SubtotalItbis1Pagina": 97.20,
+				"MontoSubtotalPagina": 637.2,
+				"SubtotalMontoNoFacturablePagina": 0
+			}
+		},
+		"FechaHoraFirma": "15-07-2023 05:07:00"
+	}
+}
