@@ -16,7 +16,14 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "test": "CURRENT_ENV=test jest --setupFiles dotenv/config --config ./jest.config.js ./src",
-    "test:watch": "CURRENT_ENV=test jest --setupFiles dotenv/config --watch --config ./jest.config.js ./src"
+    "test:watch": "CURRENT_ENV=test jest --setupFiles dotenv/config --watch --config ./jest.config.js ./src",
+    "release:prepatch": "npm version prepatch",
+    "release:patch": "npm version patch",
+    "release:preminor": "npm version preminor",
+    "release:minor": "npm version minor",
+    "release:premajor": "npm version premajor",
+    "release:major": "npm version major",
+    "postversion": "git push --follow-tags"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.6",
