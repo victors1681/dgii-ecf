@@ -1,2 +1,2 @@
-import Transformer from "./Transformer"
+import Transformer from './Transformer';
 export default Transformer;
