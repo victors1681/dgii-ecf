@@ -15,7 +15,7 @@
     "build": "npm run clean && npm run build:types && npm run build:lib",
     "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' ./src/index.ts",
     "build:lib": "./node_modules/.bin/babel src --out-dir dist --extensions '.ts,.tsx'",
-    "build:types": "tsc -p tsconfig.build.json",
+    "build:types": "tsc -p tsconfig.json",
     "clean": "rimraf dist/*",
     "lint": "eslint src/**/*.ts --fix",
     "lint:fix": "eslint src/**/*.ts --fix",
