@@ -8,10 +8,10 @@
   "license": "MIT",
   "types": "dist/index.d.ts",
   "author": "victor santos",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "compile": "tsc",
-    "start": "node ./dist/src/index.js",
+    "start": "node ./dist/index.js",
     "build": "npm run clean && npm run build:types && npm run build:lib",
     "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' ./src/index.ts",
     "build:lib": "./node_modules/.bin/babel src --out-dir dist --extensions '.ts,.tsx'",
