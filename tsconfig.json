@@ -12,6 +12,9 @@
     "strict": true,
     "types": ["node", "jest"],
     "resolveJsonModule": true, 
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true
   },
   "exclude": ["node_modules"],
   "include": ["src/**/*.ts"]
