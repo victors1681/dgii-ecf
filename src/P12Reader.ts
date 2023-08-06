@@ -96,8 +96,11 @@ class P12Reader {
 
   getKeyFromStringBase64 = (p12file: string): P12ReaderData => {
     try {
+      console.log("STARTING ++++++")
       const p12Der = forge.util.decode64(p12file);
+      console.log("p12Der ++++++", p12Der)
       const p12Asn1 = forge.asn1.fromDer(p12Der);
+      console.log("p12Asn1 ++++++", p12Asn1)
       const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, this.passphrase);
       console.log("p12 completed", p12)
       const key = this.getKeyFromP12(p12);
