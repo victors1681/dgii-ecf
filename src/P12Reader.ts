@@ -32,6 +32,7 @@ class P12Reader {
         throw new Error('Certificate not found');
       }
     } else {
+      console.error('Certificate bags not found')
       throw new Error('Certificate bags not found');
     }
   };
@@ -52,6 +53,7 @@ class P12Reader {
     }
 
     if (typeof pkcs8Key === 'undefined') {
+      console.error('Unable to get private key.')
       throw new Error('Unable to get private key.');
     }
 
@@ -97,14 +99,17 @@ class P12Reader {
       const p12Der = forge.util.decode64(p12file);
       const p12Asn1 = forge.asn1.fromDer(p12Der);
       const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, this.passphrase);
-
+      console.log("p12 completed", p12)
       const key = this.getKeyFromP12(p12);
+      console.log("key", key)
       const cert = this.getCertificateFromP12(p12);
+      console.log("cert from p12", cert)
       return {
         key,
         cert,
       };
     } catch (err) {
+      console.error(err)
       throw new Error(`${err}`);
     }
   };
