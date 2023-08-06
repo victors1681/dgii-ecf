@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "rootDirs": ["src"],
+    //"rootDirs": ["src"],
     "baseUrl": ".",
     "outDir": "./dist",
     "lib": ["dom", "es2017"],
     "target": "esnext",
     "module": "commonjs",
+    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
@@ -14,7 +15,13 @@
     "resolveJsonModule": true, 
     "noEmit": false,
     "emitDeclarationOnly": true,
-    "declaration": true
+    "declaration": true,
+    "importHelpers": true,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "src/*": ["*"]
+    },
   },
   "exclude": ["node_modules"],
   "include": ["src/**/*.ts"]

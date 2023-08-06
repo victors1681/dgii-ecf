@@ -1,9 +1,9 @@
-import { ENVIRONMENT } from 'src/networking';
-import RestApi from 'src/networking/RestApi';
-import { P12ReaderData } from 'src/P12Reader';
-import Signature from 'src/Signature/Signature';
-import { setAuthToken } from 'src/networking/restClient';
-import { AuthToken } from 'src/networking/types';
+import { ENVIRONMENT } from '../networking';
+import RestApi from '../networking/RestApi';
+import { P12ReaderData } from '../P12Reader';
+import Signature from '../Signature/Signature';
+import { setAuthToken } from '../networking/restClient';
+import { AuthToken } from '../networking/types';
 class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;

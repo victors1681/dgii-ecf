@@ -1,4 +1,4 @@
-import { ENVIRONMENT } from 'src/networking';
+import { ENVIRONMENT } from '../networking';
 import { restClient } from './restClient';
 import FormData from 'form-data';
 import { AxiosError } from 'axios';

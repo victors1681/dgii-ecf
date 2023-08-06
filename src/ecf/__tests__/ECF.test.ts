@@ -1,11 +1,11 @@
 import path from 'path';
-import P12Reader from 'src/P12Reader';
+import P12Reader from '../../P12Reader';
 import ECF from '../ECF';
-import { ENVIRONMENT, restClient } from 'src/networking';
-import Signature from 'src/Signature/Signature';
+import { ENVIRONMENT, restClient } from '../../networking';
+import Signature from '../../Signature/Signature';
 import fs from 'fs';
-import { TrackStatusEnum } from 'src/networking/types';
-import Transformer from 'src/transformers';
+import { TrackStatusEnum } from '../../networking/types';
+import Transformer from '../../transformers';
 import JsonECF31Invoice from "./sample/ecf_json_data_31.json";
 
 describe('Test Authentication flow', () => {

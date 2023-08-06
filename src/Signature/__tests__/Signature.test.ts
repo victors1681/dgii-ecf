@@ -1,7 +1,7 @@
 import Signature from '../Signature';
 import fs from 'fs';
 import path from 'path';
-import P12Reader from 'src/P12Reader';
+import P12Reader from '../../P12Reader';
 import { DOMParser } from '@xmldom/xmldom';
 import xpath from 'xpath';
 
