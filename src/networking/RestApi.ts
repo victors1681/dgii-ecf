@@ -1,5 +1,5 @@
 import { ENVIRONMENT } from '../networking';
-import { restClient } from './restClient';
+import { restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
 import { AxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
@@ -17,8 +17,11 @@ export enum ENDPOINTS {
 class RestApi {
   private env: ENVIRONMENT = ENVIRONMENT.DEV;
 
-  constructor(env: ENVIRONMENT) {
+  constructor(env: ENVIRONMENT, accessToken?: string) {
     this.env = env;
+    if(accessToken){
+      setAuthToken(accessToken);
+    }
   }
 
   private get baseApi() {

@@ -10,9 +10,10 @@ class ECF {
 
   constructor(
     p12ReaderData: P12ReaderData,
-    environment: ENVIRONMENT = ENVIRONMENT.DEV
+    environment: ENVIRONMENT = ENVIRONMENT.DEV,
+    accessToken?: string
   ) {
-    this._api = new RestApi(environment);
+    this._api = new RestApi(environment, accessToken);
     this._p12ReaderData = p12ReaderData;
   }
   authenticate = async (): Promise<AuthToken | undefined> => {
