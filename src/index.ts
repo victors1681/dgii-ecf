@@ -3,6 +3,7 @@ import P12Reader from './P12Reader';
 import Signature from './Signature/Signature';
 import ECF from './ecf';
 export * from './networking';
+export * from "./transformers";
 
 dotenv.config();
 

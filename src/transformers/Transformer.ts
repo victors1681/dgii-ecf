@@ -1,6 +1,6 @@
 import convert from 'xml-js';
 
-class Transformer {
+export class Transformer {
   json2xml = (dataObject: Object) => {
     const data = {};
     Object.assign(data, {
