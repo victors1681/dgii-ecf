@@ -11,6 +11,6 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    "@typescript-eslint/ban-types": "off"
+    '@typescript-eslint/ban-types': 'off',
   },
 };

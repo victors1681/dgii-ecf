@@ -6,11 +6,11 @@ import Signature from '../../Signature/Signature';
 import fs from 'fs';
 import { TrackStatusEnum } from '../../networking/types';
 import Transformer from '../../transformers';
-import JsonECF31Invoice from "./sample/ecf_json_data_31.json";
+import JsonECF31Invoice from './sample/ecf_json_data_31.json';
 
 describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-  let testTrackingNo = ''
+  let testTrackingNo = '';
   const reader = new P12Reader(secret);
   const certs = reader.getKeyFromFile(
     path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
@@ -46,15 +46,14 @@ describe('Test Authentication flow', () => {
 
     //Stream Readable
     const rnc = '130862346'; //Customer RNC
-    const noEcf = 'E310005000100'; //Sequence 
-    JsonECF31Invoice.ECF.Encabezado.IdDoc.eNCF = noEcf
-    const transformer = new Transformer()
+    const noEcf = 'E310005000100'; //Sequence
+    JsonECF31Invoice.ECF.Encabezado.IdDoc.eNCF = noEcf;
+    const transformer = new Transformer();
     const xml = transformer.json2xml(JsonECF31Invoice);
     const fileName = `${rnc}${noEcf}.xml`;
     const signedXml = signature.signXml(xml, 'ECF');
     const response = await ecf.sendInvoice(signedXml, fileName);
 
-   
     testTrackingNo = response?.trackId as string;
     expect(response?.trackId).toBeDefined();
     console.log(response);

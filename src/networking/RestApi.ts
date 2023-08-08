@@ -19,7 +19,7 @@ class RestApi {
 
   constructor(env: ENVIRONMENT, accessToken?: string) {
     this.env = env;
-    if(accessToken){
+    if (accessToken) {
       setAuthToken(accessToken);
     }
   }
