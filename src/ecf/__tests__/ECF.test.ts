@@ -24,6 +24,7 @@ describe('Test Authentication flow', () => {
     const auth = new ECF(certs, ENVIRONMENT.DEV);
     const tokenData = await auth.authenticate();
     expect(tokenData?.token).toBeDefined();
+    console.log('Token:', tokenData?.token);
     expect(restClient.defaults.headers.common['Authorization']).toBeDefined();
   });
 

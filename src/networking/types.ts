@@ -27,9 +27,17 @@ export interface InvoiceResponse {
 }
 
 export enum TrackStatusEnum {
-  NOT_FOUND = 'No encontrado.',
+  IN_QUEUE = 'In Queue', // not from the dgii that's an aditional initial status
+  NOT_FOUND = 'No encontrado',
   ACCEPTED = 'Aceptado',
   IN_PROCESS = 'En Proceso',
   CONDITIONAL_ACCEPTED = 'Aceptado Condicional',
   REJECTED = 'Rechazado',
+}
+export interface ServiceDirectory {
+  nombre: string;
+  rnc: string;
+  urlRecepcion: string;
+  urlAceptacion: string;
+  urlOpcional: string;
 }

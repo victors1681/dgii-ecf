@@ -5,7 +5,8 @@ export enum ENVIRONMENT {
   PROD = 'eCF',
 }
 
-export const BASE_URL = 'https://ecf.dgii.gov.do';
+export const BASE_URL = 'https://ecf.dgii.gov.do'; //Crédito fiscal
+export const BASE_URL_CF = 'https://fc.dgii.gov.do/'; //Factura de consumo
 
 export const restClient = axios.create({
   baseURL: BASE_URL,

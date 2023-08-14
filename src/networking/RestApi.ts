@@ -5,13 +5,23 @@ import { AxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
 
 import streamLength from 'stream-length';
-import { TrackingStatusResponse, AuthToken, InvoiceResponse } from './types';
+import {
+  TrackingStatusResponse,
+  AuthToken,
+  InvoiceResponse,
+  ServiceDirectory,
+} from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
   VALIDATE_SEED = 'autenticacion/api/Autenticacion/ValidarSemilla',
   SEND_INVOICE = 'recepcion/api/FacturasElectronicas',
-  APPROVE = 'aprobacionComercial/api/AprobacionComercial',
+  SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf',
+  STATUS_OF_SUMMARY_INVOICE = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
+  COMMERCIAL_APPROVE = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
   TRACK_STATUS = 'consultaresultado/api/Consultas/Estado',
+  ALL_TACKING_ECF = '/ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
+  DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
+  DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
 }
 
 class RestApi {
@@ -144,6 +154,60 @@ class RestApi {
 
       if (response.status === 200) {
         return response.data as TrackingStatusResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
+
+  /**
+   * Return all the tracking associated with a NCF
+   * @param rncEmisor Receiver RNC
+   * @param encf electronic NCF
+   * @returns
+   */
+  getAllTrackingncf = async (
+    rncEmisor: string,
+    encf: string
+  ): Promise<TrackingStatusResponse | undefined> => {
+    try {
+      const resource = this.getResource(ENDPOINTS.ALL_TACKING_ECF);
+
+      const response = await restClient.get(resource, {
+        params: { rncEmisor, encf },
+      });
+
+      if (response.status === 200) {
+        return response.data as TrackingStatusResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
+
+  /**
+   * Return the URLs for the customer if the customer is authorize to receive and approve electronic eCF
+   * for low environment it return the default DGII URL automatically
+   * @param rnc
+   * @returns Promise ServiceDirectory array of URL
+   */
+  getCustomerDirectory = async (
+    rnc: string
+  ): Promise<ServiceDirectory | undefined> => {
+    try {
+      const resource =
+        this.env === ENVIRONMENT.PROD
+          ? this.getResource(ENDPOINTS.DIRECTORY_PROD)
+          : this.getResource(ENDPOINTS.DIRECTORY_TEST_CERT);
+
+      const response = await restClient.get(resource, {
+        params: { rnc },
+      });
+
+      if (response.status === 200) {
+        return response.data as ServiceDirectory;
       }
     } catch (err) {
       const error = err as AxiosError;
