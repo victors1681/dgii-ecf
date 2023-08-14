@@ -9,7 +9,8 @@ import {
   TrackingStatusResponse,
   AuthToken,
   InvoiceResponse,
-  ServiceDirectory,
+  ServiceDirectoryResponse,
+  SummaryTrackingStatusResponse,
 } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
@@ -19,7 +20,7 @@ export enum ENDPOINTS {
   STATUS_OF_SUMMARY_INVOICE = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
   COMMERCIAL_APPROVE = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
   TRACK_STATUS = 'consultaresultado/api/Consultas/Estado',
-  ALL_TACKING_ECF = '/ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
+  ALL_TACKING_ECF = 'ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
   DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
   DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
 }
@@ -167,10 +168,10 @@ class RestApi {
    * @param encf electronic NCF
    * @returns
    */
-  getAllTrackingncf = async (
+  getAllTrackingncfApi = async (
     rncEmisor: string,
     encf: string
-  ): Promise<TrackingStatusResponse | undefined> => {
+  ): Promise<SummaryTrackingStatusResponse[] | undefined> => {
     try {
       const resource = this.getResource(ENDPOINTS.ALL_TACKING_ECF);
 
@@ -179,7 +180,7 @@ class RestApi {
       });
 
       if (response.status === 200) {
-        return response.data as TrackingStatusResponse;
+        return response.data as SummaryTrackingStatusResponse[];
       }
     } catch (err) {
       const error = err as AxiosError;
@@ -193,9 +194,9 @@ class RestApi {
    * @param rnc
    * @returns Promise ServiceDirectory array of URL
    */
-  getCustomerDirectory = async (
+  getCustomerDirectoryApi = async (
     rnc: string
-  ): Promise<ServiceDirectory | undefined> => {
+  ): Promise<ServiceDirectoryResponse | undefined> => {
     try {
       const resource =
         this.env === ENVIRONMENT.PROD
@@ -207,7 +208,7 @@ class RestApi {
       });
 
       if (response.status === 200) {
-        return response.data as ServiceDirectory;
+        return response.data as ServiceDirectoryResponse;
       }
     } catch (err) {
       const error = err as AxiosError;

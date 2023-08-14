@@ -14,6 +14,12 @@ export interface TrackingStatusResponse {
   mensajes: Mensaje[];
 }
 
+export interface SummaryTrackingStatusResponse {
+  trackId: string;
+  estado: string;
+  fechaRecepcion: string;
+}
+
 export interface AuthToken {
   token: string;
   expira: string;
@@ -34,7 +40,7 @@ export enum TrackStatusEnum {
   CONDITIONAL_ACCEPTED = 'Aceptado Condicional',
   REJECTED = 'Rechazado',
 }
-export interface ServiceDirectory {
+export interface ServiceDirectoryResponse {
   nombre: string;
   rnc: string;
   urlRecepcion: string;

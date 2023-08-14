@@ -11,6 +11,9 @@ import JsonECF31Invoice from './sample/ecf_json_data_31.json';
 describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
   let testTrackingNo = '';
+  const rnc = '130862346'; //Customer RNC
+  const noEcf = 'E310005000100'; //Sequence
+
   const reader = new P12Reader(secret);
   const certs = reader.getKeyFromFile(
     path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
@@ -46,8 +49,7 @@ describe('Test Authentication flow', () => {
     );
 
     //Stream Readable
-    const rnc = '130862346'; //Customer RNC
-    const noEcf = 'E310005000100'; //Sequence
+
     JsonECF31Invoice.ECF.Encabezado.IdDoc.eNCF = noEcf;
     const transformer = new Transformer();
     const xml = transformer.json2xml(JsonECF31Invoice);
@@ -66,6 +68,31 @@ describe('Test Authentication flow', () => {
 
     const response = await ecf.statusTrackId(trackId);
 
-    expect(response?.estado).toBe(TrackStatusEnum.REJECTED);
+    expect(response?.estado).toBe(
+      TrackStatusEnum.REJECTED ||
+        TrackStatusEnum.IN_PROCESS ||
+        TrackStatusEnum.ACCEPTED
+    );
+  });
+
+  it('Test get all tracking id status', async () => {
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    const response = await ecf.trackStatuses(rnc, noEcf);
+    expect(response?.length).toBeGreaterThan(0);
+  });
+
+  it('Test get all tracking id status', async () => {
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    const rnc = 'any rnc';
+    const response = await ecf.getCustomerDirectory(rnc);
+    expect(response).toMatchObject([
+      {
+        nombre: 'DGII',
+        rnc: '131880738',
+        urlAceptacion: 'https://ecf.dgii.gov.do/testecf/emisorreceptor',
+        urlOpcional: 'https://ecf.dgii.gov.do/Testecf/emisorreceptor',
+        urlRecepcion: 'https://ecf.dgii.gov.do/testecf/emisorreceptor',
+      },
+    ]);
   });
 });

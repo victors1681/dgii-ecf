@@ -83,6 +83,30 @@ class ECF {
       throw new Error(`${error}`);
     }
   };
+  /**
+   * Get all tracking
+   * @param rncEmisor
+   * @param encf
+   * @returns
+   */
+
+  trackStatuses = async (rncEmisor: string, encf: string) => {
+    try {
+      const response = await this._api.getAllTrackingncfApi(rncEmisor, encf);
+      return response;
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
+  };
+
+  getCustomerDirectory = async (rnc: string) => {
+    try {
+      const response = await this._api.getCustomerDirectoryApi(rnc);
+      return response;
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
+  };
 }
 
 export default ECF;
