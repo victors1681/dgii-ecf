@@ -11,6 +11,13 @@ export class Transformer {
       compact: true,
       ignoreComment: true,
       spaces: 4,
+      textFn: function (val, label) {
+        const omits = ['version'];
+        if (/^\d+\.\d+$/.test(val) && !omits.includes(label.toLowerCase())) {
+          return parseFloat(val).toFixed(2);
+        }
+        return val;
+      },
     });
   };
 }

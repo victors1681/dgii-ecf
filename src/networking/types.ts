@@ -32,6 +32,14 @@ export interface InvoiceResponse {
   mensaje?: string;
 }
 
+export interface InvoiceSummaryResponse {
+  codigo: number;
+  estado: TrackStatusEnum;
+  mensajes?: string;
+  encf: string;
+  secuenciaUtilizada: boolean;
+}
+
 export enum TrackStatusEnum {
   IN_QUEUE = 'In Queue', // not from the dgii that's an aditional initial status
   NOT_FOUND = 'No encontrado',

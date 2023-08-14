@@ -1,5 +1,5 @@
 import { ENVIRONMENT } from '../networking';
-import { restClient, setAuthToken } from './restClient';
+import { BaseUrl, restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
 import { AxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
@@ -11,12 +11,13 @@ import {
   InvoiceResponse,
   ServiceDirectoryResponse,
   SummaryTrackingStatusResponse,
+  InvoiceSummaryResponse,
 } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
   VALIDATE_SEED = 'autenticacion/api/Autenticacion/ValidarSemilla',
   SEND_INVOICE = 'recepcion/api/FacturasElectronicas',
-  SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf',
+  SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf', //use with the https:fc.dgii... domain
   STATUS_OF_SUMMARY_INVOICE = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
   COMMERCIAL_APPROVE = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
   TRACK_STATUS = 'consultaresultado/api/Consultas/Estado',
@@ -132,6 +133,49 @@ class RestApi {
 
       if (response.status === 200) {
         return response.data as InvoiceResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
+
+  /**
+   * Send the signed summary invoice to DGII (Factura de consumo)
+   * @param signedXml XML signed invoice
+   * @param fileName the composition of the file name should be RNC+e-NCF.xml example: “101672919E3100000001.xml”
+   * @returns
+   */
+  sendSummaryApi = async (
+    signedInvoice: string,
+    fileName: string
+  ): Promise<InvoiceSummaryResponse | undefined> => {
+    try {
+      const resource = this.getResource(ENDPOINTS.SEND_SUMMARY);
+
+      const stream = string2fileStream(signedInvoice, {
+        path: fileName,
+      });
+
+      const sLength = await streamLength(stream);
+
+      const options = {
+        knownLength: sLength, //Super important!! the DGII server need the Calculation of the content-length otherwise will reject the request saying "Multipart cannot be empty"
+      };
+
+      const formData = new FormData();
+      formData.append('xml', stream, options);
+
+      const response = await restClient.post(resource, formData, {
+        baseURL: BaseUrl.CF, //use FC endpoint
+        headers: {
+          ...formData.getHeaders(),
+          'Content-Length': formData.getLengthSync(), //Super important calculate dynamically! I spent so much time figuring this out! OHHHHHH I'm dead!
+        },
+      });
+
+      if (response.status === 200) {
+        return response.data as InvoiceSummaryResponse;
       }
     } catch (err) {
       const error = err as AxiosError;

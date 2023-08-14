@@ -75,6 +75,21 @@ class ECF {
     }
   };
 
+  /**
+   * Send summary for invoice < 250K pesos
+   * @param signedXml
+   * @param fileName
+   * @returns
+   */
+  sendSummary = async (signedXml: string, fileName: string) => {
+    try {
+      const response = await this._api.sendSummaryApi(signedXml, fileName);
+      return response;
+    } catch (err) {
+      throw new Error(`${err}`);
+    }
+  };
+
   statusTrackId = async (trackId: string) => {
     try {
       const response = await this._api.statusTrackIdApi(trackId);

@@ -1,0 +1,39 @@
+{
+    "RFCE": {
+        "Encabezado": {
+            "Version": "1.0",
+            "IdDoc": {
+                "TipoeCF": 32,
+                "eNCF": "E320005000101",
+                "TipoIngresos": "01",
+                "TipoPago": 1,
+                "TablaFormasPago": {
+                    "FormaDePago": {
+                        "FormaPago": 1,
+                        "MontoPago": 637.20
+                    }
+                }
+            },
+            "Emisor": {
+                "RNCEmisor": 130862346,
+                "RazonSocialEmisor": "IT SOLUCLICK SRL",
+                "FechaEmision": "14-07-2023"
+            },
+            "Comprador": {
+                "RNCComprador": "00117653873",
+                "RazonSocialComprador": "Victor Santos"
+            },
+            "Totales": {
+                "MontoGravadoTotal": 540,
+                "MontoGravadoI1": 540,
+                "MontoExento": 0,
+                "TotalITBIS": 97.20,
+                "TotalITBIS1": 97.20,
+                "MontoTotal": 637.20,
+                "MontoNoFacturable": 0,
+                "MontoPeriodo": 637.20
+            },
+            "CodigoSeguridadeCF": "123456"
+        }
+    }
+}

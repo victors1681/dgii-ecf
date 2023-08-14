@@ -7,6 +7,8 @@ import fs from 'fs';
 import { TrackStatusEnum } from '../../networking/types';
 import Transformer from '../../transformers';
 import JsonECF31Invoice from './sample/ecf_json_data_31.json';
+import JsonECF32Summary from './sample/cf_json_data_32.json';
+import { generateRandomAlphaNumeric } from '../../utils/generateRandomAlphaNumeric';
 
 describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
@@ -94,5 +96,36 @@ describe('Test Authentication flow', () => {
         urlRecepcion: 'https://ecf.dgii.gov.do/testecf/emisorreceptor',
       },
     ]);
+  });
+
+  it('Testing sending signed summary to DGII', async () => {
+    if (!certs.key || !certs.cert) {
+      return;
+    }
+
+    const noEcf = 'E320005000100'; //Sequence
+
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    const auth = await ecf.authenticate();
+
+    //console.log(auth);
+
+    //Sign invoice
+    const signature = new Signature(certs.key, certs.cert);
+
+    //Stream Readable
+
+    JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf;
+    //Adding ramdom security code
+    JsonECF32Summary.RFCE.Encabezado.CodigoSeguridadeCF =
+      generateRandomAlphaNumeric();
+    const transformer = new Transformer();
+    const xml = transformer.json2xml(JsonECF32Summary);
+
+    const fileName = `${rnc}${noEcf}.xml`;
+    const signedXml = signature.signXml(xml, 'RFCE');
+    const response = await ecf.sendSummary(signedXml, fileName);
+
+    expect(response).toBeDefined();
   });
 });
