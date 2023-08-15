@@ -26,6 +26,27 @@ export const validEncfType = ['31', '33', '34', '44'];
  */
 export class SenderReceiver {
   /**
+   * Parse XML Resonse to XML DOM
+   * @param xmlString
+   * @returns
+   */
+  parseBody = (xmlString: string) => {
+    try {
+      const startIdx = xmlString.indexOf('<?xml');
+      const endIdx = xmlString.lastIndexOf('</ECF>') + '</ECF>'.length;
+
+      // Extract the XML content
+      const result = xmlString.substring(startIdx, endIdx);
+
+      const parser = new DOMParser();
+
+      // // Parse the XML string
+      return parser.parseFromString(result, 'text/xml');
+    } catch (err) {
+      throw new Error(JSON.stringify(err));
+    }
+  };
+  /**
    * Create an XML response for the receiver endpont
    * @param xml
    * @param receptorRNC

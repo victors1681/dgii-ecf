@@ -85,4 +85,15 @@ describe('Utils tests', () => {
       console.error('Error reading file:', err);
     }
   });
+
+  it('test convertion', () => {
+    const data = fs.readFileSync(
+      path.resolve(__dirname, './sample/body_response.txt'),
+      'utf8'
+    );
+    const xmlDoc = senderReciver.parseBody(data);
+    const eNCF = xmlDoc.getElementsByTagName('eNCF')[0].textContent;
+
+    expect(eNCF).toBe('E310005000201');
+  });
 });
