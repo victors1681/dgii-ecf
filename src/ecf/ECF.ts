@@ -95,6 +95,12 @@ class ECF {
     }
   };
 
+  /**
+   * Get the status using the track id generated after send a new invoice or other document
+   * @param trackId string
+   * @returns promise with the tracking status
+   */
+
   statusTrackId = async (trackId: string) => {
     try {
       const response = await this._api.statusTrackIdApi(trackId);
@@ -218,7 +224,7 @@ class ECF {
    * @param fileName
    * @returns
    */
-  voidNCF = async (signedXml: string, fileName: string) => {
+  voidENCF = async (signedXml: string, fileName: string) => {
     try {
       const response = await this._api.sendSignedDocumentApi<VoidNCFResponse>(
         signedXml,

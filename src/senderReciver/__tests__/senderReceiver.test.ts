@@ -23,7 +23,6 @@ describe('Utils tests', () => {
         '130862346',
         ReveivedStatus['e-CF Recibido']
       );
-      console.log(response);
       const xmlDoc = new DOMParser().parseFromString(response, 'text/xml');
       const Estado = xmlDoc.getElementsByTagName('Estado')[0].textContent;
 

@@ -77,6 +77,13 @@ import ECF, { ENVIRONMENT } from 'dgii-ecf'
 const auth = new ECF(certs, ENVIRONMENT.PROD); //PRODUCTION ENV
 ```
 
+### Transformers
+Convert the JSON to a XML
+```javascript
+    const transformer = new Transformer();
+    const xml = transformer.json2xml(anyJsonDocument);
+```
+
 ### Options
 
 `Signature` this class help to sign XML documents.
@@ -106,6 +113,159 @@ const signature = new Signature(certs.key, certs.cert);
 const signedXml = signature.signXml(seedXml, 'SemillaModel');
 
 ```
+
+### API Methods
+
+###### Track ID
+Get response by track ID
+
+```ts
+const ecf = new ECF(certs, ENVIRONMENT.DEV);
+const response = await ecf.statusTrackId(trackId);
+```
+
+```json
+{
+    "trackId": "d2b6e27c-3908-46f3-afaa-2207b9501b4b",
+    "codigo": "1",
+    "estado": "Aceptado",
+    "rnc": "130862346",
+    "encf": "E310005000201",
+    "secuenciaUtilizada": true,
+    "fechaRecepcion": "8/15/2023 6:06:57 AM",
+    "mensajes": [
+        {
+            "valor": "",
+            "codigo": 0
+        }
+    ]
+}
+``` 
+###### Customer Directory
+Return the URL availables for the customers who can receive ECF online, for low environment the API will swift to a test default DGII 
+```ts
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    const rnc = 'any rnc';
+    const response = await ecf.getCustomerDirectory(rnc);
+```
+
+###### Summary Invoice (Factura de consumo  < 250K)
+Send invoice summary (32) less than 250k Pesos. 
+```ts
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    await ecf.authenticate();
+
+    const securityCode = generateRandomAlphaNumeric(); //6 digit password
+    
+    const signature = new Signature(certs.key, certs.cert);
+    const transformer = new Transformer();
+    const xml = transformer.json2xml(JsonECF32Summary);
+
+    const fileName = `${rnc}${noEcf}.xml`;
+    const signedXml = signature.signXml(xml, 'RFCE');
+    const response = await ecf.sendSummary(signedXml, fileName);
+```
+
+###### Get all the tracks IDs 
+Return all the tracking associated with a NCF
+
+```ts
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    const response = await ecf.trackStatuses(rnc, noEcf);
+```
+
+######  Inquiry Status
+Web service responsible for responding to the validity or status of an e-CF to a receiver or even to an issuer, through the presentation of the issuing RNC, e-NCF and two conditional fields to the validity of the voucher, RNC Buyer and the code of security
+
+```ts
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
+    const statusResponse = await ecf.inquiryStatus(
+     RNCEmisor,
+     noEcf,
+     RNCComprador,
+     securityCode
+    );
+```
+
+######  Commercial approval
+Web service responsible for receiving commercial approvals issued by receiving taxpayers, which consists of the approval of a transaction carried out between two taxpayers and for which an electronic receipt was received from an issuer.
+
+```ts
+ const ecf = new ECF(certs, ENVIRONMENT.DEV);
+   await ecf.sendCommercialApproval(signedXml, fileName)
+```
+
+######  Void eCF
+Web service responsible for receiving and voiding unused sequence ranges (e‐NCF) through a request XML containing the electronic receipt code, a series of ranges, from and to, as well as a token associated with a session valid.
+
+```ts
+ const ecf = new ECF(certs, ENVIRONMENT.DEV);
+   await ecf.voidENCF(signedXml, fileName)
+```
+
+
+
+
+
+
+
+### Utils
+
+Current format date time
+```ts
+import {getCurrentFormattedDateTime} from "dgii-ecf";
+getCurrentFormattedDateTime()
+```
+
+Generate alphenumeric 6 digit random password, default lenth `length = 6`
+
+```ts
+import { generateRandomAlphaNumeric } from "dgii-ecf";
+generateRandomAlphaNumeric(length)
+```
+
+
+### Sender Receiver
+Contain methods that allow to format the responses for the communication between sender and receptos and commertial approvals. It validate `ecfType`, `format`, `customer RNC`
+
+```ts
+const senderReciver = new SenderReceiver();
+const response = senderReciver.getECFDataFromXML(
+        data,
+        '130862346',
+        ReveivedStatus['e-CF Recibido']
+      );
+```
+```ts
+export enum NoReceivedCode {
+  'Error de especificación' = '1',
+  'Error de Firma Digital' = '2',
+  'Envío duplicado' = '3',
+  'RNC Comprador no corresponde' = '4',
+}
+export enum ReveivedStatus {
+  'e-CF Recibido' = '0',
+  'e-CF No Recibido' = '1',
+}
+```
+
+Formatter
+```xml
+  <ARECF>
+          <DetalleAcusedeRecibo>
+              <Version>1.0</Version>
+              <RNCEmisor>131880738</RNCEmisor>
+              <RNCComprador>130862346</RNCComprador>
+              <eNCF>E310000000007</eNCF>
+              <Estado>0</Estado>
+              <CodigoMotivoNoRecibido/>
+              <FechaHoraAcuseRecibo>15-04-2023 15:21:55</FechaHoraAcuseRecibo>
+          </DetalleAcusedeRecibo>
+      </ARECF>
+```
+[More Information ARECF](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscalesElectronicosE-CF/Documentacin%20sobre%20eCF/Formatos%20XML/Formato%20Acuse%20de%20Recibo%20v%201.0.pdf)
+        
+
 
 ## Run Test local environment
 
