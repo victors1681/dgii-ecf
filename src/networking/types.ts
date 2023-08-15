@@ -1,3 +1,7 @@
+export enum Opperation {
+  VOID_DOCUMENT,
+  COMMERCIAL_APPROVAL,
+}
 export interface Mensaje {
   valor: string;
   codigo: number;
@@ -79,4 +83,17 @@ export interface InquiryInvoiceSummary {
   codigo: StatusCode;
   estado: Status;
   mensajes?: Mensaje[];
+}
+
+export interface CommercialApprovalResponse {
+  codigo: '01' | '02';
+  estado: 'Aprobación Comercial Aprobada.' | 'Aprobacion Comercial Rechazada.';
+  mensaje: string[];
+}
+
+export interface VoidNCFResponse {
+  rnc: string;
+  codigo: string;
+  nombre: string;
+  mensajes: string[];
 }

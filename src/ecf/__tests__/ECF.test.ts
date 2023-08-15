@@ -14,7 +14,7 @@ describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
   let testTrackingNo = '';
   const rnc = '130862346'; //Customer RNC
-  const noEcf = 'E310005000100'; //Sequence
+  const noEcf = 'E310005000201'; //Sequence
 
   const reader = new P12Reader(secret);
   const certs = reader.getKeyFromFile(
@@ -45,10 +45,6 @@ describe('Test Authentication flow', () => {
 
     //Sign invoice
     const signature = new Signature(certs.key, certs.cert);
-    const xmlFile = fs.readFileSync(
-      path.resolve(__dirname, 'sample/ECF.xml'),
-      'utf-8'
-    );
 
     //Stream Readable
 
@@ -57,6 +53,21 @@ describe('Test Authentication flow', () => {
     const xml = transformer.json2xml(JsonECF31Invoice);
     const fileName = `${rnc}${noEcf}.xml`;
     const signedXml = signature.signXml(xml, 'ECF');
+
+    //SAVE XML into temporaty file for manual testing in POSTMAN
+    fs.writeFile(
+      path.resolve(__dirname, `sample/generated/${fileName}`),
+      signedXml,
+      (err) => {
+        if (err) {
+          console.error('Error writing to file:', err);
+          return;
+        } else {
+          console.log('File has been written successfully.');
+        }
+      }
+    );
+
     const response = await ecf.sendInvoice(signedXml, fileName);
 
     testTrackingNo = response?.trackId as string;

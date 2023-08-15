@@ -3,7 +3,12 @@ import RestApi from '../networking/RestApi';
 import { P12ReaderData } from '../P12Reader';
 import Signature from '../Signature/Signature';
 import { setAuthToken } from '../networking/restClient';
-import { AuthToken } from '../networking/types';
+import {
+  AuthToken,
+  CommercialApprovalResponse,
+  Opperation,
+  VoidNCFResponse,
+} from '../networking/types';
 class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;
@@ -179,6 +184,50 @@ class ECF {
       return response;
     } catch (error) {
       throw new Error(`${error}`);
+    }
+  };
+
+  /**
+   * Servicio web responsable de recibir aprobaciones comerciales emitidas por
+   * contribuyentes receptores, la cual consiste en la conformidad con una transacción
+   * llevada a cabo entre dos contribuyentes y de la cual se recibió un comprobante
+   * electrónico de un emisor.
+   * @param signedXml
+   * @param fileName
+   * @returns
+   */
+  sendCommercialApproval = async (signedXml: string, fileName: string) => {
+    try {
+      const response =
+        await this._api.sendSignedDocumentApi<CommercialApprovalResponse>(
+          signedXml,
+          fileName,
+          Opperation.COMMERCIAL_APPROVAL
+        );
+      return response;
+    } catch (err) {
+      throw new Error(`${err}`);
+    }
+  };
+  /**
+   * Servicio web responsable de recibir y anular los rangos de secuencias no utilizados
+   * (e‐NCF) a través de un XML de solicitud que contiene el código de comprobante
+   * electrónico, una serie de rangos, desde y hasta, así como un token asociado a una
+   * sesión válida.
+   * @param signedXml
+   * @param fileName
+   * @returns
+   */
+  voidNCF = async (signedXml: string, fileName: string) => {
+    try {
+      const response = await this._api.sendSignedDocumentApi<VoidNCFResponse>(
+        signedXml,
+        fileName,
+        Opperation.VOID_DOCUMENT
+      );
+      return response;
+    } catch (err) {
+      throw new Error(`${err}`);
     }
   };
 }

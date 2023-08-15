@@ -1,0 +1,15 @@
+{
+  "ACECF": {
+    "DetalleAprobacionComercial": {
+      "Version": "1.0",
+      "RNCEmisor": "130862346",
+      "eNCF": "E310005000201",
+      "FechaEmision": "14-07-2023",
+      "MontoTotal": 637.2,
+      "RNCComprador": "131880738",
+      "Estado": 1,
+      "DetalleMotivoRechazo": "",
+      "FechaHoraAprobacionComercial": "15-08-2023 06:00:00"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import {
   InvoiceSummaryResponse,
   InquiryStatusResponse,
   InquiryInvoiceSummary,
+  Opperation,
 } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
@@ -21,14 +22,14 @@ export enum ENDPOINTS {
   SEND_INVOICE = 'recepcion/api/FacturasElectronicas',
   SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf', //use with the https:fc.dgii... domain
   INQUIRY_INVOICE_SUMMARY = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
-  COMMERCIAL_APPROVE = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
+  COMMERCIAL_APPROVAL = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
   TRACK_RESULT_STATUS = 'consultaresultado/api/Consultas/Estado',
   INQUIRY_STATUS = 'consultaestado/api/Consultas/Estado', //https://ecf.dgii.gov.do/testecf/consultaestado/help/index.html
   ALL_TACKING_ECF = 'ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
   DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
   DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
+  VOID = 'anulacionrangos/api/operaciones/anularrango',
 }
-
 class RestApi {
   private env: ENVIRONMENT = ENVIRONMENT.DEV;
 
@@ -136,6 +137,61 @@ class RestApi {
 
       if (response.status === 200) {
         return response.data as InvoiceResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
+
+  /**
+   * Sign any XML document and perform the opperation like void document, receipt, commercial approval
+   * @param signedDocument
+   * @param fileName
+   * @param opperation Opperation Enum
+   * @returns
+   */
+
+  sendSignedDocumentApi = async <T>(
+    signedDocument: string,
+    fileName: string,
+    opperation: Opperation
+  ): Promise<T | undefined> => {
+    try {
+      let resource = '';
+      switch (opperation) {
+        case Opperation.VOID_DOCUMENT:
+          resource = this.getResource(ENDPOINTS.VOID);
+          break;
+        case Opperation.COMMERCIAL_APPROVAL:
+          resource = this.getResource(ENDPOINTS.COMMERCIAL_APPROVAL);
+          break;
+        default:
+          throw new Error('Opperation not found');
+      }
+
+      const stream = string2fileStream(signedDocument, {
+        path: fileName,
+      });
+
+      const sLength = await streamLength(stream);
+
+      const options = {
+        knownLength: sLength, //Super important!! the DGII server need the Calculation of the content-length otherwise will reject the request saying "Multipart cannot be empty"
+      };
+
+      const formData = new FormData();
+      formData.append('xml', stream, options);
+
+      const response = await restClient.post(resource, formData, {
+        headers: {
+          ...formData.getHeaders(),
+          'Content-Length': formData.getLengthSync(), //Super important calculate dynamically! I spent so much time figuring this out! OHHHHHH I'm dead!
+        },
+      });
+
+      if (response.status === 200) {
+        return response.data as T;
       }
     } catch (err) {
       const error = err as AxiosError;
