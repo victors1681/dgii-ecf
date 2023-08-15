@@ -55,12 +55,16 @@ export class SenderReceiver {
    * @returns NOT Signed Received format XML
    */
   getECFDataFromXML = (
-    xml: string,
+    xml: string | Document,
     receptorRNC: string,
     status: ReveivedStatus,
     code?: NoReceivedCode
   ) => {
-    const xmlDoc = new DOMParser().parseFromString(xml, 'text/xml');
+    const xmlDoc =
+      xml instanceof Document
+        ? xml
+        : new DOMParser().parseFromString(xml, 'text/xml');
+
     const eNCF = xmlDoc.getElementsByTagName('eNCF')[0].textContent;
     const TipoeCF = xmlDoc.getElementsByTagName('TipoeCF')[0].textContent;
     const RNCEmisor = xmlDoc.getElementsByTagName('RNCEmisor')[0].textContent;
