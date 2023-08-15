@@ -13,13 +13,14 @@ import {
   SummaryTrackingStatusResponse,
   InvoiceSummaryResponse,
   InquiryStatusResponse,
+  InquiryInvoiceSummary,
 } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
   VALIDATE_SEED = 'autenticacion/api/Autenticacion/ValidarSemilla',
   SEND_INVOICE = 'recepcion/api/FacturasElectronicas',
   SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf', //use with the https:fc.dgii... domain
-  STATUS_OF_SUMMARY_INVOICE = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
+  INQUIRY_INVOICE_SUMMARY = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
   COMMERCIAL_APPROVE = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
   TRACK_RESULT_STATUS = 'consultaresultado/api/Consultas/Estado',
   INQUIRY_STATUS = 'consultaestado/api/Consultas/Estado', //https://ecf.dgii.gov.do/testecf/consultaestado/help/index.html
@@ -208,7 +209,7 @@ class RestApi {
     }
   };
   /**
-   * Consulta de estado e‐CF
+   * Consulta de estado e‐CF (CONSUMO Y CRÉDITO FISCAL)
    *Servicio web responsable de responder la validez o estado de un e‐CF a un receptor o 
    incluso a un emisor, a través de la presentación del RNC emisor, e‐NCF y dos campos
    condicionales a la vigencia del comprobante, RNC Comprador y el código de seguridad.
@@ -216,7 +217,8 @@ class RestApi {
    * @param rncEmisor
    * @param ncfElectronico
    * @param rncComprador optional solo factura de consumo
-   * @param codigoSeguridad optional solo factura de consumo
+   * @param codigoSeguridad  CONSUMO: 6 digitos asignado en el resumen. CREDITO FISCAL >>> codigoSeguridad: extraído de los primeros seis (6) dígitos del
+   * hash generado en el SignatureValue de la firma digital del e-CFrecibido. Factura de credito fiscal
    * @returns
    */
   inquiryStatusApi = async (
@@ -302,16 +304,16 @@ class RestApi {
    * >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
    * @param rnc_emisor
    * @param encf
-   * @param cod_seguridad_eCF
+   * @param cod_seguridad_eCF CONSUMO: 6 digitos asignado en el resumen.
    * @returns
    */
   getSummaryInvoiceInquiryApi = async (
     rnc_emisor: string,
     encf: string,
     cod_seguridad_eCF: string
-  ): Promise<ServiceDirectoryResponse | undefined> => {
+  ): Promise<InquiryInvoiceSummary | undefined> => {
     try {
-      const resource = this.getResource(ENDPOINTS.STATUS_OF_SUMMARY_INVOICE); // >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
+      const resource = this.getResource(ENDPOINTS.INQUIRY_INVOICE_SUMMARY); // >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
 
       const response = await restClient.get(resource, {
         params: { rnc_emisor, encf, cod_seguridad_eCF },
@@ -319,7 +321,7 @@ class RestApi {
       });
 
       if (response.status === 200) {
-        return response.data as ServiceDirectoryResponse;
+        return response.data as InquiryInvoiceSummary;
       }
     } catch (err) {
       const error = err as AxiosError;

@@ -11,20 +11,23 @@ export interface TrackingStatusResponse {
   encf: string;
   secuenciaUtilizada: boolean;
   fechaRecepcion: string;
-  mensajes: Mensaje[];
+  mensajes?: Mensaje[];
 }
+
+export type StatusCode = 0 | 1 | 2; //'No encontrado' | 'Aceptado' | 'Rechazado';
+export type Status = 'No encontrado' | 'Aceptado' | 'Rechazado';
 export interface InquiryStatusResponse {
-  codigo: number;
-  estado: string;
-  rncEmisor: string;
-  ncfElectronico: string;
-  montoTotal: number;
-  totalITBIS: number;
-  fechaEmision: string;
+  codigo: StatusCode;
+  estado: Status;
+  rncEmiso?: string;
+  ncfElectronico?: string;
+  montoTotal?: number;
+  totalITBIS?: number;
+  fechaEmision?: string;
   fechaFirma?: string;
-  rncComprador: string;
-  codigoSeguridad: string;
-  idExtranjero: string;
+  rncComprador?: string;
+  codigoSeguridad?: string;
+  idExtranjero?: string;
 }
 
 export interface SummaryTrackingStatusResponse {
@@ -42,13 +45,13 @@ export interface AuthToken {
 export interface InvoiceResponse {
   trackId?: string;
   error?: string;
-  mensaje?: string;
+  mensajes?: Mensaje[];
 }
 
 export interface InvoiceSummaryResponse {
   codigo: number;
   estado: TrackStatusEnum;
-  mensajes?: string;
+  mensajes?: Mensaje[];
   encf: string;
   secuenciaUtilizada: boolean;
 }
@@ -67,4 +70,13 @@ export interface ServiceDirectoryResponse {
   urlRecepcion: string;
   urlAceptacion: string;
   urlOpcional: string;
+}
+
+export interface InquiryInvoiceSummary {
+  rnc: string;
+  encf: string;
+  secuenciaUtilizada: boolean;
+  codigo: StatusCode;
+  estado: Status;
+  mensajes?: Mensaje[];
 }

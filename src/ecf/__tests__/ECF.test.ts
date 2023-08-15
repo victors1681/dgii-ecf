@@ -33,7 +33,7 @@ describe('Test Authentication flow', () => {
     expect(restClient.defaults.headers.common['Authorization']).toBeDefined();
   });
 
-  it('Testing  sending signed invoice to DGII', async () => {
+  it('Testing  sending signed invoice (31) to DGII', async () => {
     if (!certs.key || !certs.cert) {
       return;
     }
@@ -98,7 +98,7 @@ describe('Test Authentication flow', () => {
     ]);
   });
 
-  it('Testing sending signed summary to DGII', async () => {
+  it('Testing sending signed summary (32) to DGII', async () => {
     if (!certs.key || !certs.cert) {
       return;
     }
