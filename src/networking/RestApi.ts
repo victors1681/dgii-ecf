@@ -12,6 +12,7 @@ import {
   ServiceDirectoryResponse,
   SummaryTrackingStatusResponse,
   InvoiceSummaryResponse,
+  InquiryStatusResponse,
 } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
@@ -20,7 +21,8 @@ export enum ENDPOINTS {
   SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf', //use with the https:fc.dgii... domain
   STATUS_OF_SUMMARY_INVOICE = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
   COMMERCIAL_APPROVE = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
-  TRACK_STATUS = 'consultaresultado/api/Consultas/Estado',
+  TRACK_RESULT_STATUS = 'consultaresultado/api/Consultas/Estado',
+  INQUIRY_STATUS = 'consultaestado/api/Consultas/Estado', //https://ecf.dgii.gov.do/testecf/consultaestado/help/index.html
   ALL_TACKING_ECF = 'ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
   DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
   DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
@@ -193,12 +195,45 @@ class RestApi {
     trackId: string
   ): Promise<TrackingStatusResponse | undefined> => {
     try {
-      const resource = this.getResource(ENDPOINTS.TRACK_STATUS);
+      const resource = this.getResource(ENDPOINTS.TRACK_RESULT_STATUS);
 
       const response = await restClient.get(resource, { params: { trackId } });
 
       if (response.status === 200) {
         return response.data as TrackingStatusResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
+  /**
+   * Consulta de estado e‐CF
+   *Servicio web responsable de responder la validez o estado de un e‐CF a un receptor o 
+   incluso a un emisor, a través de la presentación del RNC emisor, e‐NCF y dos campos
+   condicionales a la vigencia del comprobante, RNC Comprador y el código de seguridad.
+
+   * @param rncEmisor
+   * @param ncfElectronico
+   * @param rncComprador optional solo factura de consumo
+   * @param codigoSeguridad optional solo factura de consumo
+   * @returns
+   */
+  inquiryStatusApi = async (
+    rncEmisor: string,
+    ncfElectronico: string,
+    rncComprador?: string,
+    codigoSeguridad?: string
+  ): Promise<InquiryStatusResponse | undefined> => {
+    try {
+      const resource = this.getResource(ENDPOINTS.INQUIRY_STATUS);
+
+      const response = await restClient.get(resource, {
+        params: { rncEmisor, ncfElectronico, rncComprador, codigoSeguridad },
+      });
+
+      if (response.status === 200) {
+        return response.data as InquiryStatusResponse;
       }
     } catch (err) {
       const error = err as AxiosError;

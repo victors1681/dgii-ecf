@@ -13,6 +13,19 @@ export interface TrackingStatusResponse {
   fechaRecepcion: string;
   mensajes: Mensaje[];
 }
+export interface InquiryStatusResponse {
+  codigo: number;
+  estado: string;
+  rncEmisor: string;
+  ncfElectronico: string;
+  montoTotal: number;
+  totalITBIS: number;
+  fechaEmision: string;
+  fechaFirma?: string;
+  rncComprador: string;
+  codigoSeguridad: string;
+  idExtranjero: string;
+}
 
 export interface SummaryTrackingStatusResponse {
   trackId: string;

@@ -70,7 +70,7 @@ describe('Test Authentication flow', () => {
 
     const response = await ecf.statusTrackId(trackId);
 
-    expect(response?.estado).toBe(
+    expect(response?.estado).toEqual(
       TrackStatusEnum.REJECTED ||
         TrackStatusEnum.IN_PROCESS ||
         TrackStatusEnum.ACCEPTED
@@ -106,8 +106,9 @@ describe('Test Authentication flow', () => {
     const noEcf = 'E320005000100'; //Sequence
 
     const ecf = new ECF(certs, ENVIRONMENT.DEV);
-    const auth = await ecf.authenticate();
+    await ecf.authenticate();
 
+    const securityCode = generateRandomAlphaNumeric();
     //console.log(auth);
 
     //Sign invoice
@@ -117,8 +118,8 @@ describe('Test Authentication flow', () => {
 
     JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf;
     //Adding ramdom security code
-    JsonECF32Summary.RFCE.Encabezado.CodigoSeguridadeCF =
-      generateRandomAlphaNumeric();
+    JsonECF32Summary.RFCE.Encabezado.CodigoSeguridadeCF = securityCode;
+
     const transformer = new Transformer();
     const xml = transformer.json2xml(JsonECF32Summary);
 
@@ -127,5 +128,19 @@ describe('Test Authentication flow', () => {
     const response = await ecf.sendSummary(signedXml, fileName);
 
     expect(response).toBeDefined();
+
+    //Check the status
+
+    const statusResponse = await ecf.inquiryStatus(
+      JsonECF32Summary.RFCE.Encabezado.Emisor.RNCEmisor,
+      noEcf,
+      JsonECF32Summary.RFCE.Encabezado.Comprador.RNCComprador,
+      securityCode
+    );
+
+    expect(statusResponse?.codigoSeguridad).toBe(securityCode);
+    expect(statusResponse?.montoTotal).toBe(
+      JsonECF32Summary.RFCE.Encabezado.Totales.MontoTotal
+    );
   });
 });

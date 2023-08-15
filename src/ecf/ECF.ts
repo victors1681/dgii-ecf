@@ -98,6 +98,37 @@ class ECF {
       throw new Error(`${error}`);
     }
   };
+
+  /**
+   * Servicio web responsable de responder la validez o estado de un e‐CF a un receptor o
+   * incluso a un emisor, a través de la presentación del RNC emisor, e‐NCF y dos campos
+   * condicionales a la vigencia del comprobante, RNC Comprador y el código de seguridad.
+   *
+   * NOTE: Only works for me for intake invoice with security code
+   * @param rncEmisor
+   * @param ncfElectronico
+   * @param rncComprador
+   * @param codigoSeguridad
+   * @returns
+   */
+  inquiryStatus = async (
+    rncEmisor: string,
+    ncfElectronico: string,
+    rncComprador?: string,
+    codigoSeguridad?: string
+  ) => {
+    try {
+      const response = await this._api.inquiryStatusApi(
+        rncEmisor,
+        ncfElectronico,
+        rncComprador,
+        codigoSeguridad
+      );
+      return response;
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
+  };
   /**
    * Get all tracking
    * @param rncEmisor
