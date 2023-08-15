@@ -259,6 +259,38 @@ class RestApi {
       throw new Error(`${JSON.stringify(error)}`);
     }
   };
+
+  /**
+   * Consulta de Resumen de Factura (RFCE)
+   * Servicio web responsable de responder la validez o estado de un ENCF a un receptor o
+   * incluso a un emisor, a través de la presentación del RNC emisor, e‐NCF y el código de seguridad.
+   * >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
+   * @param rnc_emisor
+   * @param encf
+   * @param cod_seguridad_eCF
+   * @returns
+   */
+  getSummaryInvoiceInquiryApi = async (
+    rnc_emisor: string,
+    encf: string,
+    cod_seguridad_eCF: string
+  ): Promise<ServiceDirectoryResponse | undefined> => {
+    try {
+      const resource = this.getResource(ENDPOINTS.STATUS_OF_SUMMARY_INVOICE); // >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
+
+      const response = await restClient.get(resource, {
+        params: { rnc_emisor, encf, cod_seguridad_eCF },
+        baseURL: BaseUrl.CF, //use FC endpoint
+      });
+
+      if (response.status === 200) {
+        return response.data as ServiceDirectoryResponse;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
 }
 
 export default RestApi;

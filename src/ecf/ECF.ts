@@ -122,6 +122,34 @@ class ECF {
       throw new Error(`${error}`);
     }
   };
+
+  /**
+   * Consulta de Resumen de Factura (RFCE)
+   * Servicio web responsable de responder la validez o estado de un ENCF a un receptor o
+   * incluso a un emisor, a través de la presentación del RNC emisor, e‐NCF y el código de seguridad.
+   * >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
+   * @param rnc_emisor
+   * @param encf
+   * @param cod_seguridad_eCF
+   * @returns
+   */
+
+  getSummaryInvoiceInquiry = async (
+    rnc_emisor: string,
+    encf: string,
+    cod_seguridad_eCF: string
+  ) => {
+    try {
+      const response = await this._api.getSummaryInvoiceInquiryApi(
+        rnc_emisor,
+        encf,
+        cod_seguridad_eCF
+      );
+      return response;
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
+  };
 }
 
 export default ECF;
