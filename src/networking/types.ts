@@ -2,10 +2,10 @@ export interface Mensaje {
   valor: string;
   codigo: number;
 }
-
+export type TrackStatusCode = 0 | 1 | 2 | 3 | 4; //No encontrado, Aceptado, Rechazado, En Proceso, Aceptado Condicional
 export interface TrackingStatusResponse {
   trackId: string;
-  codigo: string;
+  codigo: TrackStatusCode;
   estado: TrackStatusEnum;
   rnc: string;
   encf: string;
@@ -60,9 +60,9 @@ export enum TrackStatusEnum {
   IN_QUEUE = 'In Queue', // not from the dgii that's an aditional initial status
   NOT_FOUND = 'No encontrado',
   ACCEPTED = 'Aceptado',
+  REJECTED = 'Rechazado',
   IN_PROCESS = 'En Proceso',
   CONDITIONAL_ACCEPTED = 'Aceptado Condicional',
-  REJECTED = 'Rechazado',
 }
 export interface ServiceDirectoryResponse {
   nombre: string;
