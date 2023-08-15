@@ -1,9 +1,9 @@
 {
     "ARECF": {
       "DetalleAcusedeRecibo": {
-        "Version": 1,
-        "RNCEmisor": 130862346,
-        "RNCComprador": 131880738,
+        "Version": "1.0",
+        "RNCEmisor": "130862346",
+        "RNCComprador": "131880738",
         "eNCF": "E310005000201",
         "Estado": 0,
         "CodigoMotivoNoRecibido": 1,
