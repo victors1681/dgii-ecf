@@ -100,7 +100,6 @@ describe('Utils tests', () => {
     const eNCF = xmlDoc.getElementsByTagName('eNCF')[0].textContent;
 
     expect(eNCF).toBe('E310005000201');
-
     expect(xmlResponse).toBeDefined();
   });
 });

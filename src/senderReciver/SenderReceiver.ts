@@ -80,6 +80,10 @@ export class SenderReceiver {
       code = NoReceivedCode['RNC Comprador no corresponde']; //Document not valid
       status = ReveivedStatus['e-CF No Recibido'];
     }
+    const data = {};
+    Object.assign(data, {
+      _declaration: { _attributes: { version: '1.0', encoding: 'utf-8' } },
+    });
 
     const response = {
       ARECF: {
@@ -94,8 +98,9 @@ export class SenderReceiver {
         },
       },
     };
-    const options = { compact: true, ignoreComment: true, spaces: 4 };
 
-    return js2xml(response, options);
+    Object.assign(data, response);
+    const options = { compact: true, ignoreComment: true, spaces: 4 };
+    return js2xml(data, options);
   };
 }
