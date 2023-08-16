@@ -92,8 +92,15 @@ describe('Utils tests', () => {
       'utf8'
     );
     const xmlDoc = senderReciver.parseBody(data);
+    const xmlResponse = senderReciver.getECFDataFromXML(
+      xmlDoc,
+      '130862346',
+      ReveivedStatus['e-CF Recibido']
+    );
     const eNCF = xmlDoc.getElementsByTagName('eNCF')[0].textContent;
 
     expect(eNCF).toBe('E310005000201');
+
+    expect(xmlResponse).toBeDefined();
   });
 });

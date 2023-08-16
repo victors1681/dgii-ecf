@@ -61,9 +61,9 @@ export class SenderReceiver {
     code?: NoReceivedCode
   ) => {
     const xmlDoc =
-      xml instanceof Document
-        ? xml
-        : new DOMParser().parseFromString(xml, 'text/xml');
+      typeof xml === 'string'
+        ? new DOMParser().parseFromString(xml, 'text/xml')
+        : xml;
 
     const eNCF = xmlDoc.getElementsByTagName('eNCF')[0].textContent;
     const TipoeCF = xmlDoc.getElementsByTagName('TipoeCF')[0].textContent;
