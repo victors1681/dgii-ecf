@@ -91,6 +91,7 @@ describe('Utils tests', () => {
       path.resolve(__dirname, './sample/body_response.txt'),
       'utf8'
     );
+    console.log(data);
     const xmlDoc = senderReciver.parseBody(data);
     const xmlResponse = senderReciver.getECFDataFromXML(
       xmlDoc,

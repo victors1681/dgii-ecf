@@ -98,6 +98,11 @@ export class SenderReceiver {
       },
     };
 
+    if (
+      response.ARECF.DetalleAcusedeRecibo.CodigoMotivoNoRecibido === undefined
+    ) {
+      delete response.ARECF.DetalleAcusedeRecibo.CodigoMotivoNoRecibido;
+    }
     Object.assign(data, response);
     const options = { compact: true, ignoreComment: true, spaces: 4 };
     return js2xml(data, options);
