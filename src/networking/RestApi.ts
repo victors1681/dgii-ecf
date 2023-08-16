@@ -250,6 +250,7 @@ class RestApi {
       if (response.status === 200) {
         return response.data as InvoiceSummaryResponse;
       }
+      return response;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         return err.response;
