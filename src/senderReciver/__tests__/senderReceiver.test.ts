@@ -99,7 +99,11 @@ describe('Utils tests', () => {
     );
     const eNCF = xmlDoc.getElementsByTagName('eNCF')[0].textContent;
 
-    expect(eNCF).toBe('E310005000201');
-    expect(xmlResponse).toBeDefined();
+    expect(eNCF).toBe('E310000000002');
+
+    //Validate response
+    const resDom = new DOMParser().parseFromString(xmlResponse, 'text/xml');
+    const Estado = resDom.getElementsByTagName('Estado')[0].textContent;
+    expect(Estado).toBe('0');
   });
 });

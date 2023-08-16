@@ -75,8 +75,7 @@ export class SenderReceiver {
       code = NoReceivedCode['Error de especificación']; //Document not valid
       status = ReveivedStatus['e-CF No Recibido'];
     }
-
-    if (receptorRNC != RNCComprador) {
+    if (receptorRNC !== RNCComprador) {
       code = NoReceivedCode['RNC Comprador no corresponde']; //Document not valid
       status = ReveivedStatus['e-CF No Recibido'];
     }
