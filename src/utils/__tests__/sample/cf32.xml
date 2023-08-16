@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RFCE>
+	<Encabezado>
+		<Version>1.0</Version>
+		<IdDoc>
+			<TipoeCF>32</TipoeCF>
+			<eNCF>E320005000101</eNCF>
+			<TipoIngresos>01</TipoIngresos>
+			<TipoPago>01</TipoPago>
+			<TablaFormasPago>
+				<FormaDePago>
+					<FormaPago>1</FormaPago>
+					<MontoPago>637.20</MontoPago>
+				</FormaDePago>
+			</TablaFormasPago>
+		</IdDoc>
+		<Emisor>
+			<RNCEmisor>130862346</RNCEmisor>
+			<RazonSocialEmisor>IT SOLUCLICK SRL</RazonSocialEmisor>
+			<FechaEmision>14-07-2023</FechaEmision>
+		</Emisor>
+		<Comprador>
+			<RNCComprador>00117653873</RNCComprador>
+			<RazonSocialComprador>Victor Santos</RazonSocialComprador>
+		</Comprador>
+		<Totales>
+			<MontoGravadoTotal>540</MontoGravadoTotal>
+			<MontoGravadoI1>540</MontoGravadoI1>
+			<MontoExento>0</MontoExento>
+			<TotalITBIS>97.20</TotalITBIS>
+			<TotalITBIS1>97.20</TotalITBIS1>
+			<MontoTotal>637.20</MontoTotal>
+			<MontoNoFacturable>0</MontoNoFacturable>
+			<MontoPeriodo>637.20</MontoPeriodo>
+		</Totales>
+		<CodigoSeguridadeCF/>
+	</Encabezado>
+</RFCE>

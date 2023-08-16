@@ -11,6 +11,7 @@ export class Transformer {
       compact: true,
       ignoreComment: true,
       spaces: 4,
+      fullTagEmptyElement: true,
       textFn: function (val, label) {
         const omits = ['version'];
         if (/^\d+\.\d+$/.test(val) && !omits.includes(label.toLowerCase())) {
