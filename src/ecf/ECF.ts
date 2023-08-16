@@ -27,14 +27,14 @@ class ECF {
       //Sign the seed
 
       if (!seedXml) {
-        throw new Error('Xml seed is not defined');
+        throw Error('Xml seed is not defined');
       }
 
       if (
         typeof this._p12ReaderData.key === 'undefined' ||
         typeof this._p12ReaderData.cert === 'undefined'
       ) {
-        throw new Error('Certificate key and Pem are not defined');
+        throw Error('Certificate key and Pem are not defined');
       }
 
       const signature = new Signature(
@@ -47,18 +47,18 @@ class ECF {
       const tokenData = await this._api.getAuthTokenApi(seedSigned);
 
       if (!tokenData) {
-        throw new Error('Unable to get the token');
+        throw Error('Unable to get the token');
       }
       //set token on axios
       setAuthToken(tokenData?.token);
 
       if (!tokenData) {
-        throw new Error('Token is not defined');
+        throw Error('Token is not defined');
       }
 
       return tokenData;
     } catch (err) {
-      throw new Error(`${err}`);
+      throw Error(`${err}`);
     }
   };
 
@@ -76,7 +76,7 @@ class ECF {
       );
       return response;
     } catch (err) {
-      throw new Error(`${err}`);
+      throw Error(`${err}`);
     }
   };
 
@@ -91,7 +91,7 @@ class ECF {
       const response = await this._api.sendSummaryApi(signedXml, fileName);
       return response;
     } catch (err) {
-      throw new Error(`${err}`);
+      throw Error(`${err}`);
     }
   };
 
@@ -106,7 +106,7 @@ class ECF {
       const response = await this._api.statusTrackIdApi(trackId);
       return response;
     } catch (error) {
-      throw new Error(`${error}`);
+      throw Error(`${error}`);
     }
   };
 
@@ -137,7 +137,7 @@ class ECF {
       );
       return response;
     } catch (error) {
-      throw new Error(`${error}`);
+      throw Error(`${error}`);
     }
   };
   /**
@@ -152,7 +152,7 @@ class ECF {
       const response = await this._api.getAllTrackingncfApi(rncEmisor, encf);
       return response;
     } catch (error) {
-      throw new Error(`${error}`);
+      throw Error(`${error}`);
     }
   };
 
@@ -161,7 +161,7 @@ class ECF {
       const response = await this._api.getCustomerDirectoryApi(rnc);
       return response;
     } catch (error) {
-      throw new Error(`${error}`);
+      throw Error(`${error}`);
     }
   };
 
@@ -189,7 +189,7 @@ class ECF {
       );
       return response;
     } catch (error) {
-      throw new Error(`${error}`);
+      throw Error(`${error}`);
     }
   };
 
@@ -212,7 +212,7 @@ class ECF {
         );
       return response;
     } catch (err) {
-      throw new Error(`${err}`);
+      throw Error(`${err}`);
     }
   };
   /**
@@ -233,7 +233,7 @@ class ECF {
       );
       return response;
     } catch (err) {
-      throw new Error(`${err}`);
+      throw Error(`${err}`);
     }
   };
 }

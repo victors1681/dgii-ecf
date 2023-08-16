@@ -68,7 +68,7 @@ class RestApi {
         return response.data;
       }
     } catch (err) {
-      throw new Error(JSON.stringify(err));
+      throw Error(JSON.stringify(err));
     }
   };
   /**
@@ -105,7 +105,7 @@ class RestApi {
     } catch (err) {
       const error = err as AxiosError;
       console.log('err', error.response?.data);
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -147,7 +147,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -174,7 +174,7 @@ class RestApi {
           resource = this.getResource(ENDPOINTS.COMMERCIAL_APPROVAL);
           break;
         default:
-          throw new Error('Opperation not found');
+          throw Error('Opperation not found');
       }
 
       const stream = string2fileStream(signedDocument, {
@@ -202,7 +202,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -245,7 +245,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -268,7 +268,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
   /**
@@ -302,7 +302,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -328,7 +328,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -356,7 +356,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -388,7 +388,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -427,7 +427,7 @@ class RestApi {
 
           break;
         default:
-          throw new Error('Opperation not found');
+          throw Error('Opperation not found');
       }
 
       const response = await restClient.get(resource, {
@@ -443,7 +443,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      throw Error(`${JSON.stringify(error)}`);
     }
   };
 }
