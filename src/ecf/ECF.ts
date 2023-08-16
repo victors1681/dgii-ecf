@@ -91,7 +91,7 @@ class ECF {
       const response = await this._api.sendSummaryApi(signedXml, fileName);
       return response;
     } catch (err) {
-      throw Error(`${err}`);
+      throw Error(JSON.stringify(err));
     }
   };
 

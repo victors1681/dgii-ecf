@@ -1,7 +1,7 @@
 import { ENVIRONMENT } from '../networking';
 import { BaseUrl, restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
-import { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
 
 import streamLength from 'stream-length';
@@ -37,6 +37,13 @@ export enum ENDPOINTS {
   SERVICE_MAINTENANCE = 'api/estatusservicios/obtenerventanasmantenimiento', //Require API KEY
   SERVICE_VERIFICATION = 'api/estatusservicios/verificarestado', //Require API KEY
 }
+
+export const isErrorResponse = <T>(
+  response: T | AxiosResponse
+): response is AxiosResponse => {
+  return (response as AxiosResponse).status !== 200;
+};
+
 class RestApi {
   private env: ENVIRONMENT = ENVIRONMENT.DEV;
 
@@ -68,7 +75,7 @@ class RestApi {
         return response.data;
       }
     } catch (err) {
-      throw Error(JSON.stringify(err));
+      throw new Error(JSON.stringify(err));
     }
   };
   /**
@@ -105,7 +112,7 @@ class RestApi {
     } catch (err) {
       const error = err as AxiosError;
       console.log('err', error.response?.data);
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -147,7 +154,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -174,7 +181,7 @@ class RestApi {
           resource = this.getResource(ENDPOINTS.COMMERCIAL_APPROVAL);
           break;
         default:
-          throw Error('Opperation not found');
+          throw new Error('Opperation not found');
       }
 
       const stream = string2fileStream(signedDocument, {
@@ -202,7 +209,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -215,7 +222,7 @@ class RestApi {
   sendSummaryApi = async (
     signedInvoice: string,
     fileName: string
-  ): Promise<InvoiceSummaryResponse | undefined> => {
+  ): Promise<InvoiceSummaryResponse | undefined | AxiosResponse<any, any>> => {
     try {
       const resource = this.getResource(ENDPOINTS.SEND_SUMMARY);
 
@@ -244,8 +251,10 @@ class RestApi {
         return response.data as InvoiceSummaryResponse;
       }
     } catch (err) {
-      const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        return err.response;
+      }
+      throw new Error(`${JSON.stringify(err)}`);
     }
   };
 
@@ -268,7 +277,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
   /**
@@ -302,7 +311,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -328,7 +337,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -356,7 +365,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -388,7 +397,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 
@@ -427,7 +436,7 @@ class RestApi {
 
           break;
         default:
-          throw Error('Opperation not found');
+          throw new Error('Opperation not found');
       }
 
       const response = await restClient.get(resource, {
@@ -443,7 +452,7 @@ class RestApi {
       }
     } catch (err) {
       const error = err as AxiosError;
-      throw Error(`${JSON.stringify(error)}`);
+      throw new Error(`${JSON.stringify(error)}`);
     }
   };
 }
