@@ -54,7 +54,7 @@ export interface InvoiceResponse {
 
 export interface InvoiceSummaryResponse {
   codigo: number;
-  estado: TrackStatusEnum;
+  estado: 'Aceptado' | 'Rechazado' | 'Aceptado Condicional';
   mensajes?: Mensaje[];
   encf: string;
   secuenciaUtilizada: boolean;
