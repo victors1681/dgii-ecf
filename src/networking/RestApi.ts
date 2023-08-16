@@ -15,6 +15,10 @@ import {
   InquiryStatusResponse,
   InquiryInvoiceSummary,
   Opperation,
+  StatusOperation,
+  ServiceStatusResponse,
+  MaintenanceResponse,
+  VerificationResponse,
 } from './types';
 export enum ENDPOINTS {
   SEED = 'Autenticacion/api/Autenticacion/Semilla',
@@ -29,6 +33,9 @@ export enum ENDPOINTS {
   DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
   DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
   VOID = 'anulacionrangos/api/operaciones/anularrango',
+  SERVICE_STATUS = 'api/estatusservicios/obtenerestatus', //Require API KEY
+  SERVICE_MAINTENANCE = 'api/estatusservicios/obtenerventanasmantenimiento', //Require API KEY
+  SERVICE_VERIFICATION = 'api/estatusservicios/verificarestado', //Require API KEY
 }
 class RestApi {
   private env: ENVIRONMENT = ENVIRONMENT.DEV;
@@ -378,6 +385,61 @@ class RestApi {
 
       if (response.status === 200) {
         return response.data as InquiryInvoiceSummary;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      throw new Error(`${JSON.stringify(error)}`);
+    }
+  };
+
+  /**
+   * This method combine 3 different endpoint to get the status of the service
+   * In order to consume it need the API key given by the DGII
+   * @param statusOperation
+   * @param apiKey
+   * @returns
+   */
+  dgiiCloudServicesStatusApi = async <
+    T = ServiceStatusResponse | MaintenanceResponse | VerificationResponse
+  >(
+    statusOperation: StatusOperation,
+    apiKey: string
+  ): Promise<T | undefined> => {
+    try {
+      let resource = '';
+      let params = {};
+      switch (statusOperation) {
+        case StatusOperation.SERVICES_STATUS:
+          resource = this.getResource(ENDPOINTS.SERVICE_STATUS);
+          break;
+        case StatusOperation.SERVICE_MAINTENANCE_WINDOW:
+          resource = this.getResource(ENDPOINTS.SERVICE_MAINTENANCE);
+          break;
+        case StatusOperation.SERVICE_VERIFICATION:
+          resource = this.getResource(ENDPOINTS.SERVICE_VERIFICATION);
+          const currentEnv = {
+            [ENVIRONMENT.DEV]: 1,
+            [ENVIRONMENT.PROD]: 2,
+            [ENVIRONMENT.CERT]: 3,
+          };
+
+          params = { ambiente: currentEnv[this.env] };
+
+          break;
+        default:
+          throw new Error('Opperation not found');
+      }
+
+      const response = await restClient.get(resource, {
+        params,
+        headers: {
+          Authorization: apiKey,
+        },
+        baseURL: BaseUrl.STATUS,
+      });
+
+      if (response.status === 200) {
+        return response.data as T;
       }
     } catch (err) {
       const error = err as AxiosError;

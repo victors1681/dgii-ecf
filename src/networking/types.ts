@@ -97,3 +97,42 @@ export interface VoidNCFResponse {
   nombre: string;
   mensajes: string[];
 }
+
+export type ServicesStatusName =
+  | 'Autenticación'
+  | 'Recepción'
+  | 'Consulta Resultado'
+  | 'Consulta Estado'
+  | 'Consulta Directorio'
+  | 'Consulta TrackIds'
+  | 'Aprobación Comercial'
+  | 'Anulación Rangos'
+  | 'Recepción FC';
+
+export type ServiceStatusResponse = ServiceStatus[];
+export interface ServiceStatus {
+  servicio: ServicesStatusName;
+  estatus: 'Disponible' | 'No Disponible';
+  ambiente: string;
+}
+
+export interface MaintenanceResponse {
+  ventanaMantenimientos: MaintenanceWindow[];
+}
+
+export interface MaintenanceWindow {
+  ambiente: string;
+  horaInicio: string;
+  horaFin: string;
+  dias: string[];
+}
+
+export interface VerificationResponse {
+  estado: 'Disponible' | 'No Disponible';
+}
+
+export enum StatusOperation {
+  SERVICES_STATUS,
+  SERVICE_MAINTENANCE_WINDOW,
+  SERVICE_VERIFICATION,
+}
