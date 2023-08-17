@@ -1,7 +1,7 @@
 import { ENVIRONMENT } from '../networking';
 import { BaseUrl, restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
-import axios, { AxiosError, AxiosResponse, isAxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import string2fileStream from 'string-to-file-stream';
 
 import streamLength from 'stream-length';
@@ -39,9 +39,9 @@ export enum ENDPOINTS {
 }
 
 export const isErrorResponse = <T>(
-  response: T | AxiosResponse
-): response is AxiosResponse => {
-  return (response as AxiosResponse).status !== 200;
+  response: T | AxiosError
+): response is AxiosError => {
+  return (response as AxiosError).status !== 200;
 };
 
 class RestApi {
@@ -222,7 +222,7 @@ class RestApi {
   sendSummaryApi = async (
     signedInvoice: string,
     fileName: string
-  ): Promise<InvoiceSummaryResponse | undefined | AxiosResponse<any, any>> => {
+  ): Promise<AxiosResponse<InvoiceSummaryResponse, any> | AxiosError> => {
     try {
       const resource = this.getResource(ENDPOINTS.SEND_SUMMARY);
 
@@ -247,13 +247,13 @@ class RestApi {
         },
       });
 
-      if (response.status === 200) {
-        return response.data as InvoiceSummaryResponse;
-      }
-      return response;
+      // if (response.status === 200) {
+      //   return response.data as InvoiceSummaryResponse;
+      // }
+      return response as AxiosResponse<InvoiceSummaryResponse>;
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        return err.response;
+        return err;
       }
       throw new Error(`${JSON.stringify(err)}`);
     }

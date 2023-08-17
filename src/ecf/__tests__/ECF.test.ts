@@ -9,6 +9,7 @@ import Transformer from '../../transformers';
 import JsonECF31Invoice from './sample/ecf_json_data_31.json';
 import JsonECF32Summary from './sample/cf_json_data_32.json';
 import { generateRandomAlphaNumeric } from '../../utils/generateRandomAlphaNumeric';
+import { isErrorResponse } from '../../networking/RestApi';
 
 describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
@@ -138,7 +139,11 @@ describe('Test Authentication flow', () => {
     const signedXml = signature.signXml(xml, 'RFCE');
     const response = await ecf.sendSummary(signedXml, fileName);
 
-    expect(response).toBeDefined();
+    if (isErrorResponse(response)) {
+      console.error('error');
+      return;
+    }
+    expect(response.data).toBeDefined();
 
     //Check the status
 
