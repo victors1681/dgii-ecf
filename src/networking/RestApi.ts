@@ -347,7 +347,7 @@ class RestApi {
    */
   getCustomerDirectoryApi = async (
     rnc: string
-  ): Promise<ServiceDirectoryResponse | undefined> => {
+  ): Promise<ServiceDirectoryResponse[] | undefined> => {
     try {
       const resource =
         this.env === ENVIRONMENT.PROD
@@ -358,7 +358,7 @@ class RestApi {
         params: { rnc },
       });
 
-      return response.data as ServiceDirectoryResponse;
+      return response.data as ServiceDirectoryResponse[];
     } catch (err) {
       if (axios.isAxiosError(err)) {
         throw err.response?.data;
