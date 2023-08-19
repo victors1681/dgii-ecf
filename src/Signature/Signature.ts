@@ -3,7 +3,13 @@ import KeyInfoProvider from './custom/KeyInfoProvider';
 import Digest from './custom/Digest';
 import { DOMParser } from '@xmldom/xmldom';
 
-export type XMLTag = 'SemillaModel' | 'ECF' | 'RFCE';
+export type XMLTag =
+  | 'SemillaModel'
+  | 'ECF'
+  | 'RFCE'
+  | 'ARECF'
+  | 'ACECF'
+  | 'ANECF';
 
 class Signature {
   private _privateKey = '';
