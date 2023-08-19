@@ -139,11 +139,7 @@ describe('Test Authentication flow', () => {
     const signedXml = signature.signXml(xml, 'RFCE');
     const response = await ecf.sendSummary(signedXml, fileName);
 
-    if (isErrorResponse(response)) {
-      console.error('error');
-      return;
-    }
-    expect(response.data).toBeDefined();
+    expect(response).toBeDefined();
 
     //Check the status
 
@@ -158,5 +154,58 @@ describe('Test Authentication flow', () => {
     expect(statusResponse?.montoTotal).toBe(
       JsonECF32Summary.RFCE.Encabezado.Totales.MontoTotal
     );
+  });
+
+  it('Testing sending signed summary (32) to DGII and handle errors', async () => {
+    if (!certs.key || !certs.cert) {
+      return;
+    }
+
+    try {
+      const noEcf = 'E320005000100'; //Sequence
+
+      const ecf = new ECF(certs, ENVIRONMENT.DEV);
+      await ecf.authenticate();
+
+      const securityCode = generateRandomAlphaNumeric();
+      //console.log(auth);
+
+      //Sign invoice
+      const signature = new Signature(certs.key, certs.cert);
+
+      //Stream Readable
+      JsonECF32Summary.RFCE.Encabezado.IdDoc.TipoIngresos = 1 as any; //make it fail with a wrong data to getting an error
+
+      JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf;
+      //Adding ramdom security code
+      JsonECF32Summary.RFCE.Encabezado.CodigoSeguridadeCF = securityCode;
+
+      const transformer = new Transformer();
+      const xml = transformer.json2xml(JsonECF32Summary);
+
+      const fileName = `${rnc}${noEcf}.xml`;
+      const signedXml = signature.signXml(xml, 'RFCE');
+      const response = await ecf.sendSummary(signedXml, fileName);
+
+      expect(response).toBeDefined();
+
+      //Check the status
+
+      const statusResponse = await ecf.inquiryStatus(
+        JsonECF32Summary.RFCE.Encabezado.Emisor.RNCEmisor,
+        noEcf,
+        JsonECF32Summary.RFCE.Encabezado.Comprador.RNCComprador,
+        securityCode
+      );
+
+      expect(statusResponse?.codigoSeguridad).toBe(securityCode);
+      expect(statusResponse?.montoTotal).toBe(
+        JsonECF32Summary.RFCE.Encabezado.Totales.MontoTotal
+      );
+    } catch (err) {
+      const error = err as any;
+      const message = typeof error === 'string' ? error : error;
+      expect(message.codigo).toBe(2);
+    }
   });
 });

@@ -58,7 +58,7 @@ class ECF {
 
       return tokenData;
     } catch (err) {
-      throw Error(`${err}`);
+      throw err;
     }
   };
 
@@ -76,7 +76,7 @@ class ECF {
       );
       return response;
     } catch (err) {
-      throw Error(`${err}`);
+      throw err;
     }
   };
 
@@ -91,7 +91,7 @@ class ECF {
       const response = await this._api.sendSummaryApi(signedXml, fileName);
       return response;
     } catch (err) {
-      throw Error(JSON.stringify(err));
+      throw err;
     }
   };
 
@@ -106,7 +106,7 @@ class ECF {
       const response = await this._api.statusTrackIdApi(trackId);
       return response;
     } catch (error) {
-      throw Error(`${error}`);
+      throw error;
     }
   };
 
@@ -137,7 +137,7 @@ class ECF {
       );
       return response;
     } catch (error) {
-      throw Error(`${error}`);
+      throw error;
     }
   };
   /**
@@ -152,7 +152,7 @@ class ECF {
       const response = await this._api.getAllTrackingncfApi(rncEmisor, encf);
       return response;
     } catch (error) {
-      throw Error(`${error}`);
+      throw error;
     }
   };
 
@@ -161,7 +161,7 @@ class ECF {
       const response = await this._api.getCustomerDirectoryApi(rnc);
       return response;
     } catch (error) {
-      throw Error(`${error}`);
+      throw error;
     }
   };
 
@@ -189,7 +189,7 @@ class ECF {
       );
       return response;
     } catch (error) {
-      throw Error(`${error}`);
+      throw error;
     }
   };
 
@@ -212,7 +212,7 @@ class ECF {
         );
       return response;
     } catch (err) {
-      throw Error(`${err}`);
+      throw err;
     }
   };
   /**
@@ -233,7 +233,7 @@ class ECF {
       );
       return response;
     } catch (err) {
-      throw Error(`${err}`);
+      throw err;
     }
   };
 }

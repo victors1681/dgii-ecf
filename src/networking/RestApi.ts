@@ -1,7 +1,7 @@
 import { ENVIRONMENT } from '../networking';
 import { BaseUrl, restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosError } from 'axios';
 import string2fileStream from 'string-to-file-stream';
 
 import streamLength from 'stream-length';
@@ -71,11 +71,12 @@ class RestApi {
       const resource = this.getResource(ENDPOINTS.SEED);
       const response = await restClient.get(resource);
 
-      if (response.status === 200) {
-        return response.data;
-      }
+      return response.data;
     } catch (err) {
-      throw new Error(JSON.stringify(err));
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
   /**
@@ -106,13 +107,12 @@ class RestApi {
 
       const response = await restClient.postForm(resource, formData, config);
 
-      if (response.status === 200) {
-        return response.data as AuthToken;
-      }
+      return response.data as AuthToken;
     } catch (err) {
-      const error = err as AxiosError;
-      console.log('err', error.response?.data);
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -149,12 +149,12 @@ class RestApi {
         },
       });
 
-      if (response.status === 200) {
-        return response.data as InvoiceResponse;
-      }
+      return response.data as InvoiceResponse;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -204,12 +204,12 @@ class RestApi {
         },
       });
 
-      if (response.status === 200) {
-        return response.data as T;
-      }
+      return response.data as T;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -222,7 +222,7 @@ class RestApi {
   sendSummaryApi = async (
     signedInvoice: string,
     fileName: string
-  ): Promise<AxiosResponse<InvoiceSummaryResponse, any> | AxiosError> => {
+  ): Promise<InvoiceSummaryResponse | undefined> => {
     try {
       const resource = this.getResource(ENDPOINTS.SEND_SUMMARY);
 
@@ -247,15 +247,12 @@ class RestApi {
         },
       });
 
-      // if (response.status === 200) {
-      //   return response.data as InvoiceSummaryResponse;
-      // }
-      return response as AxiosResponse<InvoiceSummaryResponse>;
+      return response.data as InvoiceSummaryResponse;
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        return err;
+        throw err.response?.data;
       }
-      throw new Error(`${JSON.stringify(err)}`);
+      throw err;
     }
   };
 
@@ -273,12 +270,12 @@ class RestApi {
 
       const response = await restClient.get(resource, { params: { trackId } });
 
-      if (response.status === 200) {
-        return response.data as TrackingStatusResponse;
-      }
+      return response.data as TrackingStatusResponse;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
   /**
@@ -307,12 +304,12 @@ class RestApi {
         params: { rncEmisor, ncfElectronico, rncComprador, codigoSeguridad },
       });
 
-      if (response.status === 200) {
-        return response.data as InquiryStatusResponse;
-      }
+      return response.data as InquiryStatusResponse;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -333,12 +330,12 @@ class RestApi {
         params: { rncEmisor, encf },
       });
 
-      if (response.status === 200) {
-        return response.data as SummaryTrackingStatusResponse[];
-      }
+      return response.data as SummaryTrackingStatusResponse[];
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -361,12 +358,12 @@ class RestApi {
         params: { rnc },
       });
 
-      if (response.status === 200) {
-        return response.data as ServiceDirectoryResponse;
-      }
+      return response.data as ServiceDirectoryResponse;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -384,7 +381,7 @@ class RestApi {
     rnc_emisor: string,
     encf: string,
     cod_seguridad_eCF: string
-  ): Promise<InquiryInvoiceSummary | undefined> => {
+  ): Promise<InquiryInvoiceSummary> => {
     try {
       const resource = this.getResource(ENDPOINTS.INQUIRY_INVOICE_SUMMARY); // >>>>>>>>>>>>>> ONLY AVAILABLE ON PRODUCTION ENVIRONEMNT <<<<<<<<<<<<<<<
 
@@ -393,12 +390,12 @@ class RestApi {
         baseURL: BaseUrl.CF, //use FC endpoint
       });
 
-      if (response.status === 200) {
-        return response.data as InquiryInvoiceSummary;
-      }
+      return response.data as InquiryInvoiceSummary;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 
@@ -448,12 +445,12 @@ class RestApi {
         baseURL: BaseUrl.STATUS,
       });
 
-      if (response.status === 200) {
-        return response.data as T;
-      }
+      return response.data as T;
     } catch (err) {
-      const error = err as AxiosError;
-      throw new Error(`${JSON.stringify(error)}`);
+      if (axios.isAxiosError(err)) {
+        throw err.response?.data;
+      }
+      throw err;
     }
   };
 }
