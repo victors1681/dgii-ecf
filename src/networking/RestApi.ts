@@ -47,7 +47,7 @@ export enum ENDPOINTS {
 export enum ENDPOINTS_SENDER_RECEIVER {
   SEED = `fe/autenticacion/api/semilla`,
   VALIDATE_SEED = `fe/autenticacion/api/validacioncertificado`,
-  SEND_INVOICE = `fe/recepción/api/ecf`,
+  SEND_INVOICE = `fe/recepcion/api/ecf`,
   SEND_COMMERCIAL_APPROVAL = `fe/aprobacioncomercial/api/ecf`,
 }
 
