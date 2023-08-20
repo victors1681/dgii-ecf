@@ -61,6 +61,7 @@ const tokenData = await auth.authenticate();
 The method `authenticate` will perform two API requests: 
 - Get the initial XML called `SEED`
 - After getting the seed, the method will sign the document using `Signature` and will make another API request to get the access token
+- buyerHost?: string Optional parameter, allow to use the same method to perform authentication againt a buyer authorized to receive eCF `const tokenData = await auth authenticate('https://ecf.dgii.gov.do/Testecf/emisorreceptor');`
 
 `auth.authenticate` return an optional object with the token and expiration, however, internally the token gets set into the header of every following request, `Authorization: access token`.
 
@@ -88,7 +89,7 @@ Convert the JSON to a XML
 
 `Signature` this class help to sign XML documents.
 
-```javascript
+```ts
 import { Signature } from 'dgii-ecf'
 
 //Read the certificate
@@ -113,6 +114,31 @@ const signature = new Signature(certs.key, certs.cert);
 const signedXml = signature.signXml(seedXml, 'SemillaModel');
 
 ```
+
+### Send Electronic Document eFC
+Send credit invoice using the api method
+
+```ts
+  //Authentication
+  const ecf = new ECF(certs, ENVIRONMENT.DEV); // select the environment TEST, CERT, PROD
+  const auth = await ecf.authenticate();
+
+  //Sign invoice
+  const signature = new Signature(certs.key, certs.cert);
+  // Optional If the input is JSON transform it to XML
+  const transformer = new Transformer();
+  const xml = transformer.json2xml(JsonECF31Invoice);
+  //------------------------------------------------
+
+  //Create the name convention RNCEmisor + eCF.xml
+  const fileName = `${rnc}${noEcf}.xml`;
+  //Add the signature to the XML targetting the main wrapper in this case `ECF` (credito fiscal) it can be | ECF | ARECF | ACECF | ANECF | RFCE 
+  const signedXml = signature.signXml(xml, 'ECF');
+  //SEND the document to the DGII
+  const response = await ecf.sendElectronicDocument(signedXml, fileName); //Optional third parameter is buyerHost?:string to send the invoice to the buyer 
+
+```
+
 
 ### API Methods
 
@@ -223,6 +249,20 @@ Generate alphenumeric 6 digit random password, default lenth `length = 6`
 import { generateRandomAlphaNumeric } from "dgii-ecf";
 generateRandomAlphaNumeric(length)
 ```
+
+Generate Code QR URL for FC
+
+```ts
+import { generateFcQRCodeURL } from "dgii-ecf";
+generateFcQRCodeURL(rncemisor: string, encf: string, montototal: number, codigoseguridad: string, env: ENVIRONMENT)
+
+```
+
+```ts
+import { generateEcfQRCodeURL } from "dgii-ecf";
+generateEcfQRCodeURL(rncemisor: string, rncComprador: string, encf: string, montototal: number, fechaEmision: string, fechaFirma: string, codigoseguridad: string, env: ENVIRONMENT)
+```
+
 
 
 ### Sender Receiver

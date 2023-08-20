@@ -9,7 +9,6 @@ import Transformer from '../../transformers';
 import JsonECF31Invoice from './sample/ecf_json_data_31.json';
 import JsonECF32Summary from './sample/cf_json_data_32.json';
 import { generateRandomAlphaNumeric } from '../../utils/generateRandomAlphaNumeric';
-import { isErrorResponse } from '../../networking/RestApi';
 
 describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
@@ -31,6 +30,21 @@ describe('Test Authentication flow', () => {
     const tokenData = await auth.authenticate();
     expect(tokenData?.token).toBeDefined();
     console.log('Token:', tokenData?.token);
+    expect(restClient.defaults.headers.common['Authorization']).toBeDefined();
+  });
+
+  it('Testing authentication againt Buyer HOST', async () => {
+    if (!certs.key || !certs.cert) {
+      return;
+    }
+
+    //HOST URL coming from the Directory from buyer authorized to receive eCF
+    const urlOpcional = 'https://ecf.dgii.gov.do/Testecf/emisorreceptor';
+
+    const auth = new ECF(certs, ENVIRONMENT.DEV);
+    const tokenData = await auth.authenticate(urlOpcional);
+    expect(tokenData?.token).toBeDefined();
+    console.log('Buyer HOST Token:', tokenData?.token);
     expect(restClient.defaults.headers.common['Authorization']).toBeDefined();
   });
 
@@ -69,7 +83,7 @@ describe('Test Authentication flow', () => {
       }
     );
 
-    const response = await ecf.sendInvoice(signedXml, fileName);
+    const response = await ecf.sendElectronicDocument(signedXml, fileName);
 
     testTrackingNo = response?.trackId as string;
     expect(response?.trackId).toBeDefined();

@@ -7,6 +7,7 @@ import {
   AuthToken,
   CommercialApprovalResponse,
   Opperation,
+  ServiceDirectoryResponse,
   VoidNCFResponse,
 } from '../networking/types';
 class ECF {
@@ -21,9 +22,14 @@ class ECF {
     this._api = new RestApi(environment, accessToken);
     this._p12ReaderData = p12ReaderData;
   }
-  authenticate = async (): Promise<AuthToken | undefined> => {
+  /**
+   * Authentication againt DGII or Buyers
+   * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
+   * @returns string Bearer Token
+   */
+  authenticate = async (buyerHost?: string): Promise<AuthToken | undefined> => {
     try {
-      const seedXml = await this._api.getSeedApi();
+      const seedXml = await this._api.getSeedApi(buyerHost);
       //Sign the seed
 
       if (!seedXml) {
@@ -44,7 +50,7 @@ class ECF {
       const seedSigned = signature.signXml(seedXml, 'SemillaModel');
 
       //Get the token
-      const tokenData = await this._api.getAuthTokenApi(seedSigned);
+      const tokenData = await this._api.getAuthTokenApi(seedSigned, buyerHost);
 
       if (!tokenData) {
         throw Error('Unable to get the token');
@@ -66,13 +72,19 @@ class ECF {
    * Send the signed invoice to DGII
    * @param signedXml XML signed invoice
    * @param fileName the composition of the file name should be RNC+e-NCF.xml example: “101672919E3100000001.xml”
+   * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
    * @returns
    */
-  sendInvoice = async (signedXml: string, fileName: string) => {
+  sendElectronicDocument = async (
+    signedXml: string,
+    fileName: string,
+    buyerHost?: string
+  ) => {
     try {
-      const response = await this._api.sendElectronicInvoiceApi(
+      const response = await this._api.sendElectronicDocumentApi(
         signedXml,
-        fileName
+        fileName,
+        buyerHost
       );
       return response;
     } catch (err) {
@@ -156,7 +168,9 @@ class ECF {
     }
   };
 
-  getCustomerDirectory = async (rnc: string) => {
+  getCustomerDirectory = async (
+    rnc: string
+  ): Promise<ServiceDirectoryResponse[] | undefined> => {
     try {
       const response = await this._api.getCustomerDirectoryApi(rnc);
       return response;

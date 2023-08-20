@@ -38,6 +38,19 @@ export enum ENDPOINTS {
   SERVICE_VERIFICATION = 'api/estatusservicios/verificarestado', //Require API KEY
 }
 
+/**
+ * Estándar de comunicación Emisor ‐ Receptor
+ * Con el objetivo de garantizar el intercambio seguro de información entre
+ * contribuyentes, en la presente sección se describe el estándar de comunicación que
+ * estos deberán tener para Facturación Electrónica.
+ */
+export enum ENDPOINTS_SENDER_RECEIVER {
+  SEED = `fe/autenticacion/api/semilla`,
+  VALIDATE_SEED = `fe/autenticacion/api/validacioncertificado`,
+  SEND_INVOICE = `fe/recepción/api/ecf`,
+  SEND_COMMERCIAL_APPROVAL = `fe/aprobacioncomercial/api/ecf`,
+}
+
 export const isErrorResponse = <T>(
   response: T | AxiosError
 ): response is AxiosError => {
@@ -62,14 +75,24 @@ class RestApi {
     return `${this.baseApi}/${endpoint}`;
   }
 
+  private getBuyerResource(endpoint: ENDPOINTS_SENDER_RECEIVER) {
+    return `/${endpoint}`;
+  }
+
   /**
    * Get an initial XML payload called seed, should be signed using the certificate .p12
+   * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
    * @returns
    */
-  getSeedApi = async (): Promise<string | undefined> => {
+  getSeedApi = async (buyerHost?: string): Promise<string | undefined> => {
     try {
-      const resource = this.getResource(ENDPOINTS.SEED);
-      const response = await restClient.get(resource);
+      //If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
+      const resource = buyerHost
+        ? this.getBuyerResource(ENDPOINTS_SENDER_RECEIVER.SEED)
+        : this.getResource(ENDPOINTS.SEED);
+      const response = await restClient.get(resource, {
+        baseURL: buyerHost,
+      });
 
       return response.data;
     } catch (err) {
@@ -82,14 +105,18 @@ class RestApi {
   /**
    * Return the token from a signed seed
    * @param signedSeed the seed should be signed in order to get the token
+   * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
    * @returns promise with the access token
    */
 
   getAuthTokenApi = async (
-    signedSeed: string
+    signedSeed: string,
+    buyerHost?: string
   ): Promise<AuthToken | undefined> => {
     try {
-      const resource = this.getResource(ENDPOINTS.VALIDATE_SEED);
+      const resource = buyerHost
+        ? this.getBuyerResource(ENDPOINTS_SENDER_RECEIVER.VALIDATE_SEED)
+        : this.getResource(ENDPOINTS.VALIDATE_SEED);
 
       //Stream Readable
       const stream = string2fileStream(signedSeed, { path: 'signed.xml' });
@@ -98,6 +125,7 @@ class RestApi {
       formData.append('xml', stream);
 
       const config = {
+        baseURL: buyerHost,
         headers: {
           'Content-Type': 'multipart/form-data',
           Accept: 'application/json',
@@ -106,7 +134,9 @@ class RestApi {
       };
 
       const response = await restClient.postForm(resource, formData, config);
-
+      if (buyerHost) {
+        console.log('RESPONSEE', response.data);
+      }
       return response.data as AuthToken;
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -120,14 +150,18 @@ class RestApi {
    * Send the signed invoice to DGII
    * @param signedXml XML signed invoice
    * @param fileName the composition of the file name should be RNC+e-NCF.xml example: “101672919E3100000001.xml”
+   * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
    * @returns
    */
-  sendElectronicInvoiceApi = async (
+  sendElectronicDocumentApi = async (
     signedInvoice: string,
-    fileName: string
+    fileName: string,
+    buyerHost?: string
   ): Promise<InvoiceResponse | undefined> => {
     try {
-      const resource = this.getResource(ENDPOINTS.SEND_INVOICE);
+      const resource = buyerHost
+        ? this.getBuyerResource(ENDPOINTS_SENDER_RECEIVER.SEND_INVOICE)
+        : this.getResource(ENDPOINTS.SEND_INVOICE);
 
       const stream = string2fileStream(signedInvoice, {
         path: fileName,
@@ -143,6 +177,7 @@ class RestApi {
       formData.append('xml', stream, options);
 
       const response = await restClient.post(resource, formData, {
+        baseURL: buyerHost,
         headers: {
           ...formData.getHeaders(),
           'Content-Length': formData.getLengthSync(), //Super important calculate dynamically! I spent so much time figuring this out! OHHHHHH I'm dead!
