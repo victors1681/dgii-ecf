@@ -21,6 +21,17 @@ export class Transformer {
       },
     });
   };
+  xml2Json = <T>(xml: string) => {
+    try {
+      return convert.xml2js(xml, {
+        compact: true,
+        ignoreComment: true,
+        nativeType: false,
+      }) as T;
+    } catch (err) {
+      throw new Error(`Error converting xml to json: ${err}`);
+    }
+  };
 }
 
 export default Transformer;
