@@ -153,11 +153,11 @@ class RestApi {
    * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
    * @returns
    */
-  sendElectronicDocumentApi = async (
+  sendElectronicDocumentApi = async <T = InvoiceResponse>(
     signedInvoice: string,
     fileName: string,
     buyerHost?: string
-  ): Promise<InvoiceResponse | undefined> => {
+  ): Promise<T | undefined> => {
     try {
       const resource = buyerHost
         ? this.getBuyerResource(ENDPOINTS_SENDER_RECEIVER.SEND_INVOICE)
@@ -184,7 +184,7 @@ class RestApi {
         },
       });
 
-      return response.data as InvoiceResponse;
+      return response.data as T;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         throw err.response?.data;

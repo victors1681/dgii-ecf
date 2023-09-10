@@ -6,6 +6,7 @@ import { setAuthToken } from '../networking/restClient';
 import {
   AuthToken,
   CommercialApprovalResponse,
+  InvoiceResponse,
   Opperation,
   ServiceDirectoryResponse,
   VoidNCFResponse,
@@ -75,13 +76,13 @@ class ECF {
    * @param buyerHost optional - If buyerHost is defined the authentication will be againt the buyer HOST to stablish the communication Sender<->Receiver
    * @returns
    */
-  sendElectronicDocument = async (
+  sendElectronicDocument = async <T = InvoiceResponse>(
     signedXml: string,
     fileName: string,
     buyerHost?: string
   ) => {
     try {
-      const response = await this._api.sendElectronicDocumentApi(
+      const response = await this._api.sendElectronicDocumentApi<T>(
         signedXml,
         fileName,
         buyerHost
