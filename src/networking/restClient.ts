@@ -1,4 +1,7 @@
 import axios from 'axios';
+import crypto from 'crypto';
+import https from 'https';
+
 export enum ENVIRONMENT {
   DEV = 'TesteCF',
   CERT = 'CerteCF',
@@ -13,6 +16,13 @@ export enum BaseUrl {
 
 export const restClient = axios.create({
   baseURL: BaseUrl.ECF,
+  httpsAgent: new https.Agent({
+    // node 18x
+    // https://stackoverflow.com/questions/74324019/allow-legacy-renegotiation-for-nodejs/74600467#74600467
+    // rejectUnauthorized: false,
+    // allow legacy server
+    secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
+  }),
 });
 
 export const setAuthToken = (token: string) => {
