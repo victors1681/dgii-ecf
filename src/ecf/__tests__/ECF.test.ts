@@ -115,7 +115,7 @@ describe('Test Authentication flow', () => {
     const response = await ecf.getCustomerDirectory(rnc);
     expect(response).toMatchObject([
       {
-        nombre: 'DGII',
+        nombre: 'Simulador Contribuyente',
         rnc: '131880738',
         urlAceptacion: 'https://ecf.dgii.gov.do/testecf/emisorreceptor',
         urlOpcional: 'https://ecf.dgii.gov.do/Testecf/emisorreceptor',
