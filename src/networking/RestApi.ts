@@ -187,7 +187,7 @@ class RestApi {
           'Content-Length': formData.getLengthSync(), //Super important calculate dynamically! I spent so much time figuring this out! OHHHHHH I'm dead!
         },
       });
-
+      console.log('Sending Request Completed', response.config);
       return response.data as T;
     } catch (err) {
       console.error(
