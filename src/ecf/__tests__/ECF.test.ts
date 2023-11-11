@@ -26,7 +26,7 @@ describe('Test Authentication flow', () => {
       return;
     }
 
-    const auth = new ECF(certs, ENVIRONMENT.CERT);
+    const auth = new ECF(certs, ENVIRONMENT.DEV);
     const tokenData = await auth.authenticate();
     expect(tokenData?.token).toBeDefined();
     console.log('Token:', tokenData?.token);
@@ -41,7 +41,7 @@ describe('Test Authentication flow', () => {
     //HOST URL coming from the Directory from buyer authorized to receive eCF
     const urlOpcional = 'https://ecf.dgii.gov.do/Testecf/emisorreceptor';
 
-    const auth = new ECF(certs, ENVIRONMENT.CERT);
+    const auth = new ECF(certs, ENVIRONMENT.DEV);
     const tokenData = await auth.authenticate(urlOpcional);
     expect(tokenData?.token).toBeDefined();
     console.log('Buyer HOST Token:', tokenData?.token);
@@ -53,7 +53,7 @@ describe('Test Authentication flow', () => {
       return;
     }
 
-    const ecf = new ECF(certs, ENVIRONMENT.CERT);
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
     const auth = await ecf.authenticate();
 
     //console.log(auth);
@@ -92,7 +92,7 @@ describe('Test Authentication flow', () => {
 
   it('Test TrackingID status', async () => {
     const trackId = testTrackingNo;
-    const ecf = new ECF(certs, ENVIRONMENT.CERT);
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
 
     const response = await ecf.statusTrackId(trackId);
 
@@ -104,13 +104,13 @@ describe('Test Authentication flow', () => {
   });
 
   it('Test get all tracking id status', async () => {
-    const ecf = new ECF(certs, ENVIRONMENT.CERT);
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
     const response = await ecf.trackStatuses(rnc, noEcf);
     expect(response?.length).toBeGreaterThan(0);
   });
 
   it('Test get all tracking id status', async () => {
-    const ecf = new ECF(certs, ENVIRONMENT.CERT);
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
     const rnc = 'any rnc';
     const response = await ecf.getCustomerDirectory(rnc);
     expect(response).toMatchObject([
@@ -131,7 +131,7 @@ describe('Test Authentication flow', () => {
 
     const noEcf = 'E320005000100'; //Sequence
 
-    const ecf = new ECF(certs, ENVIRONMENT.CERT);
+    const ecf = new ECF(certs, ENVIRONMENT.DEV);
     await ecf.authenticate();
 
     const securityCode = generateRandomAlphaNumeric();
@@ -178,7 +178,7 @@ describe('Test Authentication flow', () => {
     try {
       const noEcf = 'E320005000100'; //Sequence
 
-      const ecf = new ECF(certs, ENVIRONMENT.CERT);
+      const ecf = new ECF(certs, ENVIRONMENT.DEV);
       await ecf.authenticate();
 
       const securityCode = generateRandomAlphaNumeric();
