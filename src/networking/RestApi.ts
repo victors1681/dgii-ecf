@@ -176,6 +176,10 @@ class RestApi {
       const formData = new FormData();
       formData.append('xml', stream, options);
 
+      console.log('Sending request to:', {
+        buyerHost,
+        resource,
+      });
       const response = await restClient.post(resource, formData, {
         baseURL: buyerHost,
         headers: {
@@ -186,6 +190,10 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
+      console.error(
+        'Error sending the document, sendElectronicDocumentApi',
+        err
+      );
       if (axios.isAxiosError(err)) {
         throw err.response?.data;
       }
