@@ -1,7 +1,7 @@
 import convert from 'xml-js';
 
 export class Transformer {
-  json2xml = (dataObject: Object) => {
+  json2xml = (dataObject: Object, round: Boolean = false) => {
     const data = {};
     Object.assign(data, {
       _declaration: { _attributes: { version: '1.0', encoding: 'utf-8' } },
@@ -14,7 +14,11 @@ export class Transformer {
       fullTagEmptyElement: true,
       textFn: function (val, label) {
         const omits = ['version'];
-        if (/^\d+\.\d+$/.test(val) && !omits.includes(label.toLowerCase())) {
+        if (
+          /^\d+\.\d+$/.test(val) &&
+          round &&
+          !omits.includes(label.toLowerCase())
+        ) {
           return parseFloat(val).toFixed(2);
         }
         return val;
