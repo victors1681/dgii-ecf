@@ -176,10 +176,6 @@ class RestApi {
       const formData = new FormData();
       formData.append('xml', stream, options);
 
-      console.log('Sending request to:', {
-        buyerHost,
-        resource,
-      });
       const response = await restClient.post(resource, formData, {
         baseURL: buyerHost,
         headers: {
