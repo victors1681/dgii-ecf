@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import crypto from 'crypto';
 import https from 'https';
 
@@ -24,6 +24,19 @@ export const restClient = axios.create({
     secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
   }),
 });
+
+restClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (isAxiosError(error) && error.status === 401) {
+      throw {
+        status: 401,
+        message: 'ERROR 401: Unauthorized, please check your credentials',
+      };    
+    }
+    throw error;
+  }
+);
 
 export const setAuthToken = (token: string) => {
   restClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;

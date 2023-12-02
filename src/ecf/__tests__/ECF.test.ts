@@ -222,4 +222,15 @@ describe('Test Authentication flow', () => {
       expect(message.codigo).toBe(2);
     }
   });
+
+  it('Testing interceptor 401 response', async () => {
+    try {
+      const trackId = testTrackingNo;
+      const ecf = new ECF(certs, ENVIRONMENT.DEV, undefined);
+      await ecf.statusTrackId(trackId);
+    } catch (err) {
+      const error = err as any;
+        expect(error.status).toEqual(401);
+    }
+  });
 });
