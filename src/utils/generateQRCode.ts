@@ -37,13 +37,19 @@ export const generateEcfQRCodeURL = (
   rncemisor: string,
   rncComprador: string,
   encf: string,
-  montototal: number,
+  montototal: string,
   fechaEmision: string,
   fechaFirma: string,
   codigoseguridad: string,
   env: ENVIRONMENT
 ): string => {
+  let rncCompradorParam = `RncComprador=${rncComprador}&`;
+
+  if (/E43/i.test(encf) || /E47/i.test(encf) || !rncComprador) {
+    rncCompradorParam = ''; //remove from the URL
+  }
+
   return encodeURI(
-    `${BaseUrl.ECF}/${env}/consultatimbre?rncemisor=${rncemisor}&RncComprador=${rncComprador}&encf=${encf}&FechaEmision=${fechaEmision}&montototal=${montototal}&FechaFirma=${fechaFirma}&codigoseguridad=${codigoseguridad}`
+    `${BaseUrl.ECF}/${env}/consultatimbre?rncemisor=${rncemisor}&${rncCompradorParam}encf=${encf}&FechaEmision=${fechaEmision}&montototal=${montototal}&FechaFirma=${fechaFirma}&codigoseguridad=${codigoseguridad}`
   );
 };

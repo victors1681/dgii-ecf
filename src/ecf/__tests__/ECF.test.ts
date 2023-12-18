@@ -230,7 +230,7 @@ describe('Test Authentication flow', () => {
       await ecf.statusTrackId(trackId);
     } catch (err) {
       const error = err as any;
-        expect(error.status).toEqual(401);
+      expect(error.status).toEqual(401);
     }
   });
 });
