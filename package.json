@@ -9,9 +9,6 @@
   "types": "dist/index.d.ts",
   "author": "Victor Santos <victors1681@gmail.com> (https://vsantos.info/)",
   "main": "dist/index.js",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "scripts": {
     "compile": "tsc",
     "start": "node ./dist/index.js",
