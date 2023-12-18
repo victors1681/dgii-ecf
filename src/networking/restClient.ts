@@ -28,11 +28,11 @@ export const restClient = axios.create({
 restClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (isAxiosError(error) && error.status === 401) {
+    if (isAxiosError(error) && error.response?.status === 401) {
       throw {
         status: 401,
         message: 'ERROR 401: Unauthorized, please check your credentials',
-      };    
+      };
     }
     throw error;
   }
