@@ -263,6 +263,13 @@ import { generateEcfQRCodeURL } from "dgii-ecf";
 generateEcfQRCodeURL(rncemisor: string, rncComprador: string, encf: string, montototal: number, fechaEmision: string, fechaFirma: string, codigoseguridad: string, env: ENVIRONMENT)
 ```
 
+This utility is invaluable for processing commercial approvals. When receiving commercial approval from DGII, this tool facilitates the extraction of XML content from the response body.
+
+```ts
+import { getXmlFromBodyResponse } from "dgii-ecf";
+//lasTagName default ACECF
+getXmlFromBodyResponse(rawBody: string, lasTagName?:string) 
+```
 
 
 ### Sender Receiver
