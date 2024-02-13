@@ -23,7 +23,7 @@ export type Status = 'No encontrado' | 'Aceptado' | 'Rechazado';
 export interface InquiryStatusResponse {
   codigo: StatusCode;
   estado: Status;
-  rncEmiso?: string;
+  rncEmisor?: string;
   ncfElectronico?: string;
   montoTotal?: number;
   totalITBIS?: number;
