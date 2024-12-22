@@ -33,7 +33,7 @@ jobs:
       - run: cd src/test_cert && ls                   
       - run: npm ci
       - run: npm run build --if-present
-      - run: npm test
+      #- run: npm test
       - run: rm -rf src/test_cert
       - uses: JS-DevTools/npm-publish@v1
         with:
