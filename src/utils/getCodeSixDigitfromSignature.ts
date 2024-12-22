@@ -7,6 +7,11 @@ electrónica menor a DOP$250 mil.
  */
 export const getCodeSixDigitfromSignature = (signedXml: string) => {
   const resDom = new DOMParser().parseFromString(signedXml, 'text/xml');
+
+  const match = signedXml.match(/<SignatureValue>(.*?)<\/SignatureValue>/);
+  if (!match) {
+    throw new Error('SignatureValue not found');
+  }
   const signatureValue =
     resDom.getElementsByTagName('SignatureValue')[0].textContent;
 
