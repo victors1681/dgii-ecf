@@ -256,16 +256,28 @@ await ecf.voidENCF(signedXml, fileName);
 
 ### Utils
 
-Current format date time
+Get the security code getting the first 6 digits of the signature hash value
+
+```ts
+import { getCodeSixDigitfromSignature } from 'dgii-ecf';
+const securityCode = getCodeSixDigitfromSignature(xml);
+```
+
+Convert a xml ECF documento to RFCE document to send it to the DGII as a summary
+
+```ts
+import { convertECF32ToRFCE } from 'dgii-ecf';
+//Note: ecf32Xml should be a valid ECF with the signature
+const { xml, securityCode } = convertECF32ToRFCE(ecf32Xml);
+```
 
 ```ts
 import { getCurrentFormattedDateTime } from 'dgii-ecf';
 getCurrentFormattedDateTime();
 ```
 
-Generate alphenumeric 6 digit random password, default lenth `length = 6`
-
 ```ts
+//DEPRECATED DO NOT USE IT
 import { generateRandomAlphaNumeric } from 'dgii-ecf';
 generateRandomAlphaNumeric(length);
 ```
@@ -289,6 +301,14 @@ This utility is invaluable for processing commercial approvals. When receiving c
 import { getXmlFromBodyResponse } from "dgii-ecf";
 //lasTagName default ACECF
 getXmlFromBodyResponse(rawBody: string, lasTagName?:string)
+```
+
+Generate alphenumeric 6 digit random password, default lenth `length = 6`
+
+```ts
+//DEPRECATED DO NOT USE IT
+import { generateRandomAlphaNumeric } from 'dgii-ecf';
+generateRandomAlphaNumeric(length);
 ```
 
 ### Sender Receiver
