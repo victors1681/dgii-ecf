@@ -94,6 +94,7 @@ export interface Comprador {
   CodigoInternoComprador: string;
   ResponsablePago: ResponsablePago;
   InformacionAdicionalComprador: string;
+  IdentificadorExtranjero: string;
 }
 
 export type ResponsablePago = Object;

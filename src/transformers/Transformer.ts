@@ -10,7 +10,7 @@ export class Transformer {
     return convert.js2xml(data, {
       compact: true,
       ignoreComment: true,
-      spaces: 4,
+      spaces: 2,
       fullTagEmptyElement: true,
       textFn: function (val, label) {
         const omits = ['version'];
