@@ -5,7 +5,7 @@ import { IECF, ImpuestoAdicional } from '../types/IECF';
 /**
  * This function allow to create a RFCE from a ECF 32 to send to the DGII
  * @param rcf32Xml XML string from the original document ECF 32 with signature
- * @returns
+ * @returns {xml: string, securityCode: string} The RFCE XML and the security code
  */
 export function convertECF32ToRFCE(rcf32Xml: string): {
   xml: string;
@@ -75,12 +75,12 @@ export function convertECF32ToRFCE(rcf32Xml: string): {
           MontoNoFacturable: rcf32.ECF.Encabezado.Totales.MontoNoFacturable,
           MontoPeriodo: rcf32.ECF.Encabezado.Totales.MontoPeriodo,
         },
-        CodigoSeguridadeCF: CodigoSeguridadeCF, // Required for RFCE
+        CodigoSeguridadeCF: CodigoSeguridadeCF,
       },
     },
   });
 
-  return { xml: transform.json2xml(rfce), securityCode: CodigoSeguridadeCF }; //'<?xml version="1.0" encoding="utf-8"?>\n' + builder.build(rfce);
+  return { xml: transform.json2xml(rfce), securityCode: CodigoSeguridadeCF };
 }
 
 const removeEmptyValues = (obj: any): any => {
