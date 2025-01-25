@@ -213,6 +213,33 @@ const signedRFCEXml = signature.signXml(DataRFCE.xml, 'RFCE');
 const response = await ecf.sendSummary(signedRFCEXml, fileName);
 ```
 
+###### Validate XML Certificate
+
+Validates the digital signature and certificate of an XML document. The function performs these steps:
+
+1. Extracts Signature node from XML
+2. Validates signature
+3. Validates certificate
+4. Checks certificate expiration
+5. Returns validation result
+
+```ts
+import { validateXMLCertificate } from 'dgii-ecf';
+
+// Basic usage
+const xmlString = fs.readFileSync('signed-document.xml', 'utf8');
+const isValid = validateXMLCertificate(xmlString);
+
+// With silent option (suppress console errors)
+const isValidSilent = validateXMLCertificate(xmlString, { silent: true });
+
+if (isValid) {
+  console.log('XML signature is valid');
+} else {
+  console.log('XML signature is invalid');
+}
+```
+
 ###### Get all the tracks IDs
 
 Return all the tracking associated with a NCF

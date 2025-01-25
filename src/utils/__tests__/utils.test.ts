@@ -9,6 +9,7 @@ import { generateEcfQRCodeURL } from '../generateQRCode';
 import { ENVIRONMENT } from '../../../src/networking';
 import { getXmlFromBodyResponse } from '../getXmlFromBodyResponse';
 import { convertECF32ToRFCE } from '../convertECF32ToRFCE';
+import { validateXMLCertificate } from '../validateXMLCertificate';
 
 describe('Test util function ', () => {
   it('get six digit from the signature', () => {
@@ -109,5 +110,27 @@ describe('Test util function ', () => {
 
     expect(rfce.xml).toBe(rfceXml);
     expect(rfce.securityCode).toBe('m+tPLr');
+  });
+
+  it('Verify valid  XML Signature', () => {
+    const xmlSigned = fs.readFileSync(
+      path.resolve(__dirname, './sample/130359334E310000008928.xml'),
+      'utf8'
+    );
+
+    const result = validateXMLCertificate(xmlSigned);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('Verify invalid  XML Signature', () => {
+    const xmlSigned = fs.readFileSync(
+      path.resolve(__dirname, './sample/130359334E310000008928-invalid.xml'),
+      'utf8'
+    );
+
+    const result = validateXMLCertificate(xmlSigned, { silent: true });
+
+    expect(result).toBeFalsy();
   });
 });
