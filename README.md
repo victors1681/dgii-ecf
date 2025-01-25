@@ -215,29 +215,39 @@ const response = await ecf.sendSummary(signedRFCEXml, fileName);
 
 ###### Validate XML Certificate
 
-Validates the digital signature and certificate of an XML document. The function performs these steps:
+Function that validates digital signatures and certificates in XML documents. Returns detailed validation information including the certificate object.
+
+**Steps:**
 
 1. Extracts Signature node from XML
 2. Validates signature
-3. Validates certificate
+3. Validates certificate format and content
 4. Checks certificate expiration
-5. Returns validation result
+5. Returns ValidationResponse response with certificate data
 
 ```ts
 import { validateXMLCertificate } from 'dgii-ecf';
 
+interface ValidationResponse {
+  isValid: boolean;
+  cert?: crypto.X509Certificate; // Return the certificate public information
+  error?: string;
+}
+
 // Basic usage
 const xmlString = fs.readFileSync('signed-document.xml', 'utf8');
-const isValid = validateXMLCertificate(xmlString);
+const result = validateXMLCertificate(xmlString);
+
+if (result.isValid) {
+  // Access certificate details
+  console.log('Certificate Subject:', result.cert?.subject);
+  console.log('Valid Until:', result.cert?.validTo);
+} else {
+  console.log('Validation failed:', result.error);
+}
 
 // With silent option (suppress console errors)
-const isValidSilent = validateXMLCertificate(xmlString, { silent: true });
-
-if (isValid) {
-  console.log('XML signature is valid');
-} else {
-  console.log('XML signature is invalid');
-}
+const silentResult = validateXMLCertificate(xmlString, { silent: true });
 ```
 
 ###### Get all the tracks IDs

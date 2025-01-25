@@ -10,6 +10,7 @@ import { ENVIRONMENT } from '../../../src/networking';
 import { getXmlFromBodyResponse } from '../getXmlFromBodyResponse';
 import { convertECF32ToRFCE } from '../convertECF32ToRFCE';
 import { validateXMLCertificate } from '../validateXMLCertificate';
+import exp from 'constants';
 
 describe('Test util function ', () => {
   it('get six digit from the signature', () => {
@@ -120,7 +121,8 @@ describe('Test util function ', () => {
 
     const result = validateXMLCertificate(xmlSigned);
 
-    expect(result).toBeTruthy();
+    expect(result.isValid).toBeTruthy();
+    expect(result.cert).toBeDefined();
   });
 
   it('Verify invalid  XML Signature', () => {
@@ -130,7 +132,6 @@ describe('Test util function ', () => {
     );
 
     const result = validateXMLCertificate(xmlSigned, { silent: true });
-
-    expect(result).toBeFalsy();
+    expect(result.isValid).toBeFalsy();
   });
 });

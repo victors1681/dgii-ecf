@@ -7,21 +7,27 @@ interface ValidateXMLOptions {
   silent?: boolean; // This option helps to avoid printing the error message, Clean unit test output :)
 }
 
+interface ValidationResponse {
+  isValid: boolean;
+  cert?: crypto.X509Certificate; // This is the certificate object with public key and other properties
+  error?: string;
+}
+
 /**
  * This function validates the XML signature of a given XML string.
  * 1. Extracts the Signature node from the XML.
  * 2. Validates the signature.
  * 3. Validates the certificate.
  * 4. Checks if the certificate is expired.
- * 5. Returns true if the XML signature is valid.
+ * 5. Returns the validation response including the certificate object with the customer data
  * @param xml
  * @param options Optional
- * @returns boolean
+ * @returns ValidationResponse
  */
 export const validateXMLCertificate = (
   xml: string,
   options: ValidateXMLOptions = {}
-): boolean => {
+): ValidationResponse => {
   const doc = new DOMParser().parseFromString(xml, 'text/xml');
   try {
     // Extract the Signature node
@@ -33,16 +39,20 @@ export const validateXMLCertificate = (
       throw new Error('Signature not found in the XML.');
     }
 
-    validateXmlCertificate(xml, options);
-    return true;
+    const response = validateXmlCertificate(xml, options);
+    return response;
   } catch (error) {
-    return false;
+    return {
+      isValid: false,
+      cert: undefined,
+      error: error instanceof Error ? error.message : 'Invalid certificate',
+    };
   }
 };
 function validateXmlCertificate(
   xml: string,
   options: ValidateXMLOptions = {}
-): void {
+): ValidationResponse {
   try {
     const doc = new DOMParser().parseFromString(xml);
     const signatureNode = xpath.select(
@@ -62,19 +72,19 @@ function validateXmlCertificate(
         if (!keyInfo) {
           throw new Error('KeyInfo is undefined.');
         }
-        const certificateNode = xpath
-          .select(
-            "string(//*[local-name(.)='X509Certificate'])",
+        const certificateNode = xpath.select(
+          "string(//*[local-name(.)='X509Certificate'])",
 
-            (keyInfo as unknown as Node[])[0]
-          )
-          .toString();
+          (keyInfo as unknown as Node[])[0]
+        );
 
-        if (typeof certificateNode !== 'string' || !certificateNode) {
+        const certificateString = certificateNode.toString();
+
+        if (typeof certificateString !== 'string' || !certificateString) {
           throw new Error('Invalid certificate content');
         }
 
-        const cleanCert = certificateNode.replace(/[\n\r\s]/g, '');
+        const cleanCert = certificateString.replace(/[\n\r\s]/g, '');
         if (!cleanCert.match(/^[A-Za-z0-9+/=]+$/)) {
           throw new Error('Invalid base64 certificate');
         }
@@ -113,12 +123,17 @@ function validateXmlCertificate(
     if (new Date(cert.validFrom) > now || new Date(cert.validTo) < now) {
       throw new Error('Certificate is expired or not yet valid.');
     }
+    return { isValid: true, cert };
   } catch (error: unknown) {
     if (!options.silent && error instanceof Error) {
       console.error('Error validating XML certificate:', error.message);
     } else if (!options.silent) {
       console.error('Error validating XML certificate:', error);
     }
-    throw error;
+    return {
+      isValid: false,
+      cert: undefined,
+      error: error instanceof Error ? error.message : 'Invalid certificate',
+    };
   }
 }
