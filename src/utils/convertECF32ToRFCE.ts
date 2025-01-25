@@ -26,54 +26,55 @@ export function convertECF32ToRFCE(rcf32Xml: string): {
   const rfce = removeEmptyValues({
     RFCE: {
       Encabezado: {
-        Version: rcf32.ECF.Encabezado.Version,
+        Version: rcf32.ECF.Encabezado?.Version,
         IdDoc: {
-          TipoeCF: rcf32.ECF.Encabezado.IdDoc.TipoeCF,
-          eNCF: rcf32.ECF.Encabezado.IdDoc.eNCF,
-          TipoIngresos: rcf32.ECF.Encabezado.IdDoc.TipoIngresos,
-          TipoPago: rcf32.ECF.Encabezado.IdDoc.TipoPago,
-          TablaFormasPago: rcf32.ECF.Encabezado.IdDoc.TablaFormasPago,
+          TipoeCF: rcf32.ECF.Encabezado?.IdDoc?.TipoeCF,
+          eNCF: rcf32.ECF.Encabezado?.IdDoc?.eNCF,
+          TipoIngresos: rcf32.ECF.Encabezado?.IdDoc?.TipoIngresos,
+          TipoPago: rcf32.ECF.Encabezado?.IdDoc?.TipoPago,
+          TablaFormasPago: rcf32.ECF.Encabezado?.IdDoc?.TablaFormasPago,
         },
         Emisor: {
-          RNCEmisor: rcf32.ECF.Encabezado.Emisor.RNCEmisor,
-          RazonSocialEmisor: rcf32.ECF.Encabezado.Emisor.RazonSocialEmisor,
-          FechaEmision: rcf32.ECF.Encabezado.Emisor.FechaEmision,
+          RNCEmisor: rcf32.ECF.Encabezado?.Emisor?.RNCEmisor,
+          RazonSocialEmisor: rcf32.ECF.Encabezado?.Emisor?.RazonSocialEmisor,
+          FechaEmision: rcf32.ECF.Encabezado?.Emisor?.FechaEmision,
         },
         Comprador: {
-          RNCComprador: rcf32.ECF.Encabezado.Comprador.RNCComprador,
+          RNCComprador: rcf32.ECF.Encabezado?.Comprador?.RNCComprador,
           IdentificadorExtranjero:
-            rcf32.ECF.Encabezado.Comprador.IdentificadorExtranjero,
+            rcf32.ECF.Encabezado?.Comprador?.IdentificadorExtranjero,
           RazonSocialComprador:
-            rcf32.ECF.Encabezado.Comprador.RazonSocialComprador,
+            rcf32.ECF.Encabezado?.Comprador?.RazonSocialComprador,
         },
         Totales: {
-          MontoGravadoTotal: rcf32.ECF.Encabezado.Totales.MontoGravadoTotal,
-          MontoGravadoI1: rcf32.ECF.Encabezado.Totales.MontoGravadoI1,
-          MontoGravadoI2: rcf32.ECF.Encabezado.Totales.MontoGravadoI2,
-          MontoGravadoI3: rcf32.ECF.Encabezado.Totales.MontoGravadoI3,
-          MontoExento: rcf32.ECF.Encabezado.Totales.MontoExento,
-          TotalITBIS: rcf32.ECF.Encabezado.Totales.TotalITBIS,
-          TotalITBIS1: rcf32.ECF.Encabezado.Totales.TotalITBIS1,
-          TotalITBIS2: rcf32.ECF.Encabezado.Totales.TotalITBIS2,
-          TotalITBIS3: rcf32.ECF.Encabezado.Totales.TotalITBIS3,
+          MontoGravadoTotal: rcf32.ECF.Encabezado?.Totales?.MontoGravadoTotal,
+          MontoGravadoI1: rcf32.ECF.Encabezado?.Totales?.MontoGravadoI1,
+          MontoGravadoI2: rcf32.ECF.Encabezado?.Totales?.MontoGravadoI2,
+          MontoGravadoI3: rcf32.ECF.Encabezado?.Totales?.MontoGravadoI3,
+          MontoExento: rcf32.ECF.Encabezado?.Totales?.MontoExento,
+          TotalITBIS: rcf32.ECF.Encabezado?.Totales?.TotalITBIS,
+          TotalITBIS1: rcf32.ECF.Encabezado?.Totales?.TotalITBIS1,
+          TotalITBIS2: rcf32.ECF.Encabezado?.Totales?.TotalITBIS2,
+          TotalITBIS3: rcf32.ECF.Encabezado?.Totales?.TotalITBIS3,
           MontoImpuestoAdicional:
-            rcf32.ECF.Encabezado.Totales.MontoImpuestoAdicional,
+            rcf32.ECF.Encabezado?.Totales?.MontoImpuestoAdicional,
           ImpuestosAdicionales: {
             ImpuestoAdicional:
-              rcf32.ECF.Encabezado.Totales.ImpuestosAdicionales.ImpuestoAdicional.map(
+              rcf32.ECF.Encabezado?.Totales?.ImpuestosAdicionales?.ImpuestoAdicional?.map(
                 (impuesto: ImpuestoAdicional) => ({
-                  TipoImpuesto: impuesto.TipoImpuesto,
+                  TipoImpuesto: impuesto?.TipoImpuesto,
                   MontoImpuestoSelectivoConsumoEspecifico:
-                    impuesto.MontoImpuestoSelectivoConsumoEspecifico,
+                    impuesto?.MontoImpuestoSelectivoConsumoEspecifico,
                   MontoImpuestoSelectivoConsumoAdvalorem:
-                    impuesto.MontoImpuestoSelectivoConsumoAdvalorem,
-                  OtrosImpuestosAdicionales: impuesto.OtrosImpuestosAdicionales,
+                    impuesto?.MontoImpuestoSelectivoConsumoAdvalorem,
+                  OtrosImpuestosAdicionales:
+                    impuesto?.OtrosImpuestosAdicionales,
                 })
               ),
           },
-          MontoTotal: rcf32.ECF.Encabezado.Totales.MontoTotal,
-          MontoNoFacturable: rcf32.ECF.Encabezado.Totales.MontoNoFacturable,
-          MontoPeriodo: rcf32.ECF.Encabezado.Totales.MontoPeriodo,
+          MontoTotal: rcf32.ECF.Encabezado?.Totales?.MontoTotal,
+          MontoNoFacturable: rcf32.ECF.Encabezado?.Totales?.MontoNoFacturable,
+          MontoPeriodo: rcf32.ECF.Encabezado?.Totales?.MontoPeriodo,
         },
         CodigoSeguridadeCF: CodigoSeguridadeCF,
       },

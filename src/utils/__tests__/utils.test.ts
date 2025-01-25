@@ -91,4 +91,23 @@ describe('Test util function ', () => {
     expect(rfce.xml).toBe(rfceXml);
     expect(rfce.securityCode).toBe('m+tPLr');
   });
+
+  it('Convert ECF32 to RFCE without aditional taxes', () => {
+    const ecf32Xml = fs.readFileSync(
+      path.resolve(
+        __dirname,
+        './sample/convertion/signedECF32-without-tax.xml'
+      ),
+      'utf8'
+    );
+    const rfceXml = fs.readFileSync(
+      path.resolve(__dirname, './sample/convertion/rfceWithoutAditionaTax.xml'),
+      'utf8'
+    );
+
+    const rfce = convertECF32ToRFCE(ecf32Xml);
+
+    expect(rfce.xml).toBe(rfceXml);
+    expect(rfce.securityCode).toBe('m+tPLr');
+  });
 });
