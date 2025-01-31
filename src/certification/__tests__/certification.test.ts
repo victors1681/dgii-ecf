@@ -13,9 +13,6 @@ describe('Sending Commercial Approvall', () => {
   it('Sending commercial approval', async () => {
     const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
 
-    const rnc = '130862346'; //Customer RNC
-    const noEcf = 'E310005000201'; //Sequence
-
     const reader = new P12Reader(secret);
     const certs = reader.getKeyFromFile(
       path.resolve(
