@@ -10,7 +10,7 @@ export enum NoReceivedCode {
   'RNC Comprador no corresponde' = '4',
 }
 
-export enum ReveivedStatus {
+export enum ReceivedStatus {
   'e-CF Recibido' = '0',
   'e-CF No Recibido' = '1',
 }
@@ -57,7 +57,7 @@ export class SenderReceiver {
   getECFDataFromXML = (
     xml: string | Document,
     receptorRNC: string,
-    status: ReveivedStatus,
+    status: ReceivedStatus,
     code?: NoReceivedCode
   ) => {
     const xmlDoc =
@@ -73,11 +73,11 @@ export class SenderReceiver {
 
     if (TipoeCF && excludedEncfType.includes(TipoeCF)) {
       code = NoReceivedCode['Error de especificación']; //Document not valid
-      status = ReveivedStatus['e-CF No Recibido'];
+      status = ReceivedStatus['e-CF No Recibido'];
     }
     if (receptorRNC !== RNCComprador) {
       code = NoReceivedCode['RNC Comprador no corresponde']; //Document not valid
-      status = ReveivedStatus['e-CF No Recibido'];
+      status = ReceivedStatus['e-CF No Recibido'];
     }
     const data = {};
     Object.assign(data, {
