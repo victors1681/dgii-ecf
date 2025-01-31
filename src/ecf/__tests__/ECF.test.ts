@@ -23,12 +23,12 @@ describe('Test Authentication flow', () => {
   const noEcf = `E3100050${randomNum()}`; //Sequence
 
   const reader = new P12Reader(secret);
-  const certs = reader.getKeyFromFile(
-    path.resolve(
-      __dirname,
-      `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-    )
+  const certificatePath = path.resolve(
+    __dirname,
+    `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
   );
+  console.log('certificatePath');
+  const certs = reader.getKeyFromFile(certificatePath);
 
   it('Testing authentication', async () => {
     if (!certs.key || !certs.cert) {
