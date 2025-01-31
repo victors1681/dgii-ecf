@@ -25,7 +25,9 @@ describe('Test Authentication flow', () => {
   const reader = new P12Reader(secret);
   const certificatePath = path.resolve(
     __dirname,
-    `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
+    `../../test_cert/${
+      process.env.CERTIFICATE_NAME || '<<<<< certificate not found>>>>>'
+    }`
   );
   console.log('certificatePath');
   const certs = reader.getKeyFromFile(certificatePath);

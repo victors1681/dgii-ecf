@@ -7,7 +7,8 @@ on:
     branches: [main]
 env:
   CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}
-
+  CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
+  RNC_EMISOR: ${{ secrets.RNC_EMISOR }}
 jobs:
   build:
     runs-on: ubuntu-latest

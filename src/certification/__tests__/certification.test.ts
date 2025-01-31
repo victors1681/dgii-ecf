@@ -17,7 +17,7 @@ describe('Sending Commercial Approvall', () => {
     const certificatePath = path.resolve(
       __dirname,
       `../../test_cert/${
-        process.env.CERTIFICATE_NAME || 'certificate not found'
+        process.env.CERTIFICATE_NAME || '<<<<< certificate not found>>>>>'
       }`
     );
     console.log('certificatePath', certificatePath);
