@@ -1,7 +1,7 @@
 import path from 'path';
 import P12Reader from '../../P12Reader';
 import ECF from '../../ecf/ECF';
-import { ENVIRONMENT, restClient } from '../../networking';
+import { ENVIRONMENT } from '../../networking';
 import Signature from '../../Signature/Signature';
 import fs from 'fs';
 import {
