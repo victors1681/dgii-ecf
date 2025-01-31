@@ -28,7 +28,7 @@ jobs:
           curl --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
-          --location ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}
+          --location https://raw.githubusercontent.com/victors1681/certificates/main/${{ secrets.CERTIFICATE_NAME }}
       - run: cd src/test_cert && ls
       - run: npm ci
       - run: npm run build --if-present
