@@ -14,12 +14,12 @@ describe('Sending Commercial Approvall', () => {
     const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
 
     const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
+    const certificatePath = path.resolve(
+      __dirname,
+      `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
     );
+    console.log('certificatePath');
+    const certs = reader.getKeyFromFile(certificatePath);
 
     if (!certs.key || !certs.cert) {
       return;
