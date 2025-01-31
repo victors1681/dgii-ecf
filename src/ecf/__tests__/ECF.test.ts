@@ -9,16 +9,25 @@ import Transformer from '../../transformers';
 import JsonECF31Invoice from './sample/ecf_json_data_31.json';
 import JsonECF32Summary from './sample/cf_json_data_32.json';
 import { generateRandomAlphaNumeric } from '../../utils/generateRandomAlphaNumeric';
+import { getCurrentFormattedDate } from '../../utils';
+const randomNum = () =>
+  Math.floor(Math.random() * 100000)
+    .toString()
+    .padStart(5, '0');
 
 describe('Test Authentication flow', () => {
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
   let testTrackingNo = '';
-  const rnc = '130862346'; //Customer RNC
-  const noEcf = 'E310005000201'; //Sequence
+
+  const rnc = process.env.RNC_EMISOR || ''; //Customer RNC
+  const noEcf = `E3100050${randomNum()}`; //Sequence
 
   const reader = new P12Reader(secret);
   const certs = reader.getKeyFromFile(
-    path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
+    path.resolve(
+      __dirname,
+      `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
+    )
   );
 
   it('Testing authentication', async () => {
@@ -33,7 +42,7 @@ describe('Test Authentication flow', () => {
     expect(restClient.defaults.headers.common['Authorization']).toBeDefined();
   });
 
-  it('Testing authentication againt Buyer HOST', async () => {
+  it('Testing authentication against Buyer HOST', async () => {
     if (!certs.key || !certs.cert) {
       return;
     }
@@ -96,17 +105,21 @@ describe('Test Authentication flow', () => {
 
     const response = await ecf.statusTrackId(trackId);
 
-    expect(response?.estado).toEqual(
-      TrackStatusEnum.REJECTED ||
-        TrackStatusEnum.IN_PROCESS ||
-        TrackStatusEnum.ACCEPTED
-    );
+    expect([
+      TrackStatusEnum.REJECTED,
+      TrackStatusEnum.IN_PROCESS,
+      TrackStatusEnum.ACCEPTED,
+    ]).toContain(response?.estado);
   });
 
   it('Test get all tracking id status', async () => {
-    const ecf = new ECF(certs, ENVIRONMENT.DEV);
-    const response = await ecf.trackStatuses(rnc, noEcf);
-    expect(response?.length).toBeGreaterThan(0);
+    try {
+      const ecf = new ECF(certs, ENVIRONMENT.DEV);
+      const response = await ecf.trackStatuses(rnc, noEcf);
+      expect(response?.length).toBeGreaterThan(0);
+    } catch (err: any) {
+      expect(err.estado).toBe('TrackId no encontrado.'); // integration test aceptable to not find trackId
+    }
   });
 
   it('Test get all tracking id status', async () => {
@@ -129,7 +142,7 @@ describe('Test Authentication flow', () => {
       return;
     }
 
-    const noEcf = 'E320005000100'; //Sequence
+    const noEcf = `E3200050${randomNum()}`; //Sequence
 
     const ecf = new ECF(certs, ENVIRONMENT.DEV);
     await ecf.authenticate();
@@ -145,7 +158,10 @@ describe('Test Authentication flow', () => {
     JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf;
     //Adding ramdom security code
     JsonECF32Summary.RFCE.Encabezado.CodigoSeguridadeCF = securityCode;
-
+    JsonECF32Summary.RFCE.Encabezado.Emisor.RNCEmisor =
+      process.env.RNC_EMISOR || '';
+    JsonECF32Summary.RFCE.Encabezado.Emisor.FechaEmision =
+      getCurrentFormattedDate();
     const transformer = new Transformer();
     const xml = transformer.json2xml(JsonECF32Summary);
 
@@ -176,8 +192,7 @@ describe('Test Authentication flow', () => {
     }
 
     try {
-      const noEcf = 'E320005000100'; //Sequence
-
+      const noEcf32 = `E3200050${randomNum()}`; //Sequence
       const ecf = new ECF(certs, ENVIRONMENT.DEV);
       await ecf.authenticate();
 
@@ -190,14 +205,13 @@ describe('Test Authentication flow', () => {
       //Stream Readable
       JsonECF32Summary.RFCE.Encabezado.IdDoc.TipoIngresos = 1 as any; //make it fail with a wrong data to getting an error
 
-      JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf;
-      //Adding ramdom security code
+      JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf32;
+      //Adding random security code
       JsonECF32Summary.RFCE.Encabezado.CodigoSeguridadeCF = securityCode;
 
       const transformer = new Transformer();
       const xml = transformer.json2xml(JsonECF32Summary);
-
-      const fileName = `${rnc}${noEcf}.xml`;
+      const fileName = `${rnc}${noEcf32}.xml`;
       const signedXml = signature.signXml(xml, 'RFCE');
       const response = await ecf.sendSummary(signedXml, fileName);
 

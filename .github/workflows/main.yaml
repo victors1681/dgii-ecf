@@ -2,15 +2,14 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 env:
-  CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}      
+  CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -30,10 +29,10 @@ jobs:
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
           --location ${{ secrets.CERTIFICATE_PRIVATE_REPOSITORY }}
-      - run: cd src/test_cert && ls                   
+      - run: cd src/test_cert && ls
       - run: npm ci
       - run: npm run build --if-present
-      #- run: npm test
+      - run: npm test
       - run: rm -rf src/test_cert
       - uses: JS-DevTools/npm-publish@v1
         with:
