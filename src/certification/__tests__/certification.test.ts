@@ -18,7 +18,7 @@ describe('Sending Commercial Approvall', () => {
       __dirname,
       `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
     );
-    console.log('certificatePath');
+    console.log('certificatePath', certificatePath);
     const certs = reader.getKeyFromFile(certificatePath);
 
     if (!certs.key || !certs.cert) {
