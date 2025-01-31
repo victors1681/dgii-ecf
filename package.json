@@ -32,7 +32,6 @@
   "dependencies": {
     "@xmldom/xmldom": "^0.8.6",
     "axios": "^1.7.9",
-    "crypto": "^1.0.1",
     "dotenv": "^16.0.3",
     "form-data": "^4.0.0",
     "fs": "0.0.1-security",
