@@ -1,7 +1,7 @@
 import path from 'path';
 import P12Reader from '../../P12Reader';
 import ECF from '../../ecf/ECF';
-import { ENVIRONMENT, restClient } from '../../networking';
+import { ENVIRONMENT } from '../../networking';
 import Signature from '../../Signature/Signature';
 import fs from 'fs';
 import {
@@ -13,13 +13,15 @@ describe('Sending Commercial Approvall', () => {
   it('Sending commercial approval', async () => {
     const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
 
-    const rnc = '130862346'; //Customer RNC
-    const noEcf = 'E310005000201'; //Sequence
-
     const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
+    const certificatePath = path.resolve(
+      __dirname,
+      `../../test_cert/${
+        process.env.CERTIFICATE_NAME || '<<<<< certificate not found>>>>>'
+      }`
     );
+    console.log('certificatePath', certificatePath);
+    const certs = reader.getKeyFromFile(certificatePath);
 
     if (!certs.key || !certs.cert) {
       return;

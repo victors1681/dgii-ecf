@@ -132,7 +132,6 @@ class RestApi {
           ...formData.getHeaders(),
         },
       };
-
       const response = await restClient.postForm(resource, formData, config);
       if (buyerHost) {
         console.log('RESPONSEE', response.data);
@@ -140,6 +139,9 @@ class RestApi {
       return response.data as AuthToken;
     } catch (err) {
       if (axios.isAxiosError(err)) {
+        if (err.message) {
+          throw new Error(err.message);
+        }
         throw err.response?.data;
       }
       throw err;

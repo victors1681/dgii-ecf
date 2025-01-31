@@ -33,7 +33,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-
+src/ecf/__tests__/sample/generated/*
 
 short-hash.json
 

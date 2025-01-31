@@ -1,6 +1,7 @@
 module.exports = {
   clearMocks: true,
   coverageDirectory: 'coverage',
+  setupFilesAfterEnv: ['jest-extended/all'],
   testEnvironment: 'node',
   testTimeout: 60000,
   transform: {

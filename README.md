@@ -103,7 +103,10 @@ import { Signature } from 'dgii-ecf';
 //Read the certificate
 const reader = new P12Reader(secret);
 const certs = reader.getKeyFromFile(
-  path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
+  path.resolve(
+    __dirname,
+    `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
+  )
 );
 
 if (!certs.key || !certs.cert) {
@@ -397,7 +400,13 @@ Formatter
 This repo performs the unit test connecting to the DGII test environment
 
 - First: In order to pass the test locally the first step is to plate your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
-- Second: create a `.env` file and set a variable `CERTIFICATE_TEST_PASSWORD='_YOUT_PASSWORD_'` with the passphrase secret of your certificate.
+- Second: create a `.env` file and set a variables:
+
+```
+CERTIFICATE_NAME='your_certificate.p12'
+CERTIFICATE_TEST_PASSWORD=''
+RNC_EMISOR=''
+```
 
 Install dependencies
 
