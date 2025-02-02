@@ -14,6 +14,8 @@ _Do not try to use on frontend application like Reactjs, only use it on the serv
 
 [>> Video Tutorial <<](https://youtu.be/J_D2VBJscxI)
 
+If you want to save time adapting your software use my new cloud service [ecf.mseller.app](https://ecf.mseller.app)
+
 ## Installation
 
 Install dgii-ecf with npm
@@ -393,6 +395,8 @@ Formatter
       </ARECF>
 ```
 
+[More Information ARECF](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscalesElectronicosE-CF/Documentacin%20sobre%20eCF/Formatos%20XML/Formato%20Acuse%20de%20Recibo%20v%201.0.pdf)
+
 ## Custom Authentication
 
 The `CustomAuthentication` class provides methods to create a custom authentication, generate a seed, validate a seed, verify XML signatures, as well as generate and verify JWT tokens.
@@ -446,11 +450,9 @@ try {
 }
 ```
 
-[More Information ARECF](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscalesElectronicosE-CF/Documentacin%20sobre%20eCF/Formatos%20XML/Formato%20Acuse%20de%20Recibo%20v%201.0.pdf)
+## Run Integration Test local environment
 
-## Run Test local environment
-
-This repo performs the unit test connecting to the DGII test environment
+This repo performs the unit/integration tests connecting to the DGII test environment
 
 - First: In order to pass the test locally the first step is to plate your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
 - Second: create a `.env` file and set a variables:
