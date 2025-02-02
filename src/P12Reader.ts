@@ -4,6 +4,7 @@ import forge from 'node-forge';
 export interface P12ReaderData {
   key: string | undefined;
   cert: string | undefined;
+  publicKey?: string | undefined;
 }
 
 class P12Reader {
@@ -74,16 +75,24 @@ class P12Reader {
 
       const key = this.getKeyFromP12(p12);
       const cert = this.getCertificateFromP12(p12);
+      const publicKey = cert ? this.getPublicKeyFromCert(cert) : undefined;
 
       return {
         key,
         cert,
+        publicKey,
       };
     } catch (err) {
       throw new Error(
         `${err}: use path.resolve(__dirname, filename) if needed`
       );
     }
+  };
+
+  private getPublicKeyFromCert = (certPem: string): string => {
+    // Extract the public key from the certificate
+    const cert = forge.pki.certificateFromPem(certPem);
+    return forge.pki.publicKeyToPem(cert.publicKey);
   };
 
   /**

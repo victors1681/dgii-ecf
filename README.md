@@ -393,6 +393,59 @@ Formatter
       </ARECF>
 ```
 
+## Custom Authentication
+
+The `CustomAuthentication` class provides methods to create a custom authentication, generate a seed, validate a seed, verify XML signatures, as well as generate and verify JWT tokens.
+
+### Usage
+
+#### Step One | Initialize the class
+
+Initialize the `CustomAuthentication` class with the necessary certificate.
+
+```typescript
+import { CustomAuthentication, P12Reader } from 'dgii-ecf';
+
+const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
+
+const reader = new P12Reader(secret);
+const certs = reader.getKeyFromFile(
+  path.resolve(__dirname, `../../test_cert/'your certificate'}`)
+);
+
+const customAuth = new CustomAuthentication(cert);
+```
+
+#### Step Two | Generate and send the seed
+
+Generate a seed and send it to the client. Ensure the client accesses the seed via the endpoint following the DGII standard:
+`{your_host}/fe/autenticacion/api/semilla`
+
+```ts
+const seed = customAuthentication.generateSeed();
+```
+
+#### Step Three | Validate the Seed
+
+Create an endpoint to validate the seed submitted by the client. The endpoint URL should follow the DGII standard:
+`{your_host}/fe/autenticacion/api/validacioncertificado`
+
+```ts
+const token = await customAuthentication.verifySignedSeed(signedSeed);
+```
+
+#### Step Four | Validate the Seed
+
+Once the authentication flow is complete, restrict the client’s access to your resources. Validate the access token before allowing access to the protected endpoint like `/fe/recepción/api/ecf`
+
+```ts
+try {
+  const decoded = await customAuthentication.verifyToken(token);
+} catch (error) {
+  console.error('Token verification failed:', error.message);
+}
+```
+
 [More Information ARECF](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscalesElectronicosE-CF/Documentacin%20sobre%20eCF/Formatos%20XML/Formato%20Acuse%20de%20Recibo%20v%201.0.pdf)
 
 ## Run Test local environment
@@ -403,9 +456,11 @@ This repo performs the unit test connecting to the DGII test environment
 - Second: create a `.env` file and set a variables:
 
 ```
+
 CERTIFICATE_NAME='your_certificate.p12'
 CERTIFICATE_TEST_PASSWORD=''
 RNC_EMISOR=''
+
 ```
 
 Install dependencies

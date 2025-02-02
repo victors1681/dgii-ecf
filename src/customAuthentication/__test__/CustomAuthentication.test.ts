@@ -2,37 +2,46 @@ import P12Reader from '../../P12Reader';
 import CustomAuthentication from '../CustomAuthentication';
 import path from 'path';
 import fs from 'fs';
-import Signature from '../../Signature/Signature';
 
 describe('Custom Authentication', () => {
-  const privateKey = 'YOUR_XYZ_RANDOM_KEY';
-
   const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
 
   const reader = new P12Reader(secret);
   const certs = reader.getKeyFromFile(
-    path.resolve(__dirname, '../../test_cert/4303328_identity.p12')
+    path.resolve(
+      __dirname,
+      `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
+    )
   );
-  const publicKey = certs.cert!;
-  const customAuthentication = new CustomAuthentication(privateKey, publicKey);
+  const customAuthentication = new CustomAuthentication(certs);
 
-  it('Generate a ramdom seed file ', () => {
+  it('Generate a random seed file ', () => {
     const seed = customAuthentication.generateSeed();
     expect(seed).toBeDefined();
   });
-  it('Validate Seed', async () => {
-    // const seed = fs.readFileSync(
-    //   path.resolve(__dirname, './data/seed-test.xml'),
-    //   'utf8'
-    // );
 
+  it('Validate Seed', async () => {
     const signedSeed = fs.readFileSync(
       path.resolve(__dirname, './data/seed-test_140133.xml'),
       'utf8'
     );
 
-    //const signedSeed = await customAuthentication.verifySignedSeed(seed);
-    const result = await customAuthentication.verifySignedSeed(signedSeed);
-    expect(result).toBe('');
+    const token = await customAuthentication.verifySignedSeed(signedSeed);
+
+    const verification = await customAuthentication.verifyToken(token);
+    expect(verification.isExpired).toBeFalsy();
+  });
+
+  it('Validate Seed with failed response', async () => {
+    const signedSeed = fs.readFileSync(
+      path.resolve(__dirname, './data/seed-test_140133.xml'),
+      'utf8'
+    );
+
+    const token = await customAuthentication.verifySignedSeed(signedSeed);
+
+    await expect(
+      customAuthentication.verifyToken(token + '1')
+    ).rejects.toThrow();
   });
 });

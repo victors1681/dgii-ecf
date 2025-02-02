@@ -20,7 +20,6 @@ describe('Sending Commercial Approvall', () => {
         process.env.CERTIFICATE_NAME || '<<<<< certificate not found>>>>>'
       }`
     );
-    console.log('certificatePath', certificatePath);
     const certs = reader.getKeyFromFile(certificatePath);
 
     if (!certs.key || !certs.cert) {
