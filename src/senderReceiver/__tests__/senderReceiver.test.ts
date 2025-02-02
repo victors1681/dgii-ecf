@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 
 describe('Utils tests', () => {
-  const senderReciver = new SenderReceiver();
+  const senderReceiver = new SenderReceiver();
 
   it('Get ECF Data from XML for confirmation receive', () => {
     try {
@@ -18,7 +18,7 @@ describe('Utils tests', () => {
         'utf8'
       );
 
-      const response = senderReciver.getECFDataFromXML(
+      const response = senderReceiver.getECFDataFromXML(
         data,
         '130862346',
         ReceivedStatus['e-CF Recibido']
@@ -39,7 +39,7 @@ describe('Utils tests', () => {
         'utf8'
       );
 
-      const response = senderReciver.getECFDataFromXML(
+      const response = senderReceiver.getECFDataFromXML(
         data,
         'MY_RNC', //Simulation when the current RNC is receiving not corresponded NCF
         ReceivedStatus['e-CF Recibido']
@@ -66,7 +66,7 @@ describe('Utils tests', () => {
         'utf8'
       );
 
-      const response = senderReciver.getECFDataFromXML(
+      const response = senderReceiver.getECFDataFromXML(
         data,
         '130862346', //Simulation when the current RNC is receiving not corresponded NCF
         ReceivedStatus['e-CF Recibido']
@@ -91,8 +91,8 @@ describe('Utils tests', () => {
       path.resolve(__dirname, './sample/body_response.txt'),
       'utf8'
     );
-    const xmlDoc = senderReciver.parseBody(data);
-    const xmlResponse = senderReciver.getECFDataFromXML(
+    const xmlDoc = senderReceiver.parseBody(data);
+    const xmlResponse = senderReceiver.getECFDataFromXML(
       xmlDoc,
       '130862346',
       ReceivedStatus['e-CF Recibido']

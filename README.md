@@ -358,8 +358,8 @@ generateRandomAlphaNumeric(length);
 Contain methods that allow to format the responses for the communication between sender and receptos and commertial approvals. It validate `ecfType`, `format`, `customer RNC`
 
 ```ts
-const senderReciver = new SenderReceiver();
-const response = senderReciver.getECFDataFromXML(
+const senderReceiver = new SenderReceiver();
+const response = senderReceiver.getECFDataFromXML(
   data,
   '130862346',
   ReveivedStatus['e-CF Recibido']
