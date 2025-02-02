@@ -5,7 +5,8 @@ import ECF from './ecf';
 export * from './networking';
 export * from './transformers';
 export * from './utils';
-export * from './senderReciver';
+export * from './senderReceiver';
+export * from './customAuthentication';
 
 dotenv.config();
 
