@@ -1,5 +1,4 @@
 import axios, { isAxiosError } from 'axios';
-
 export enum ENVIRONMENT {
   DEV = 'TesteCF',
   CERT = 'CerteCF',
