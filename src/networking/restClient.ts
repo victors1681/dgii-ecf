@@ -10,8 +10,7 @@ export enum BaseUrl {
   CF = 'https://fc.dgii.gov.do', //Factura de consumo < 250K
   STATUS = 'https://statusecf.dgii.gov.do', //status
 }
-// process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-// process.env.OPENSSL_CONF = '/dev/null';
+
 export const restClient = axios.create({
   baseURL: BaseUrl.ECF,
 });
