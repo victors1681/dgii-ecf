@@ -422,11 +422,11 @@ const customAuth = new CustomAuthentication(cert);
 
 #### Step Two | Generate and send the seed
 
-Generate a seed and send it to the client. Ensure the client accesses the seed via the endpoint following the DGII standard:
+Generate a seed and send it to the client. Ensure the client can accesses the seed via the endpoint following the DGII standard:
 `{your_host}/fe/autenticacion/api/semilla`
 
 ```ts
-const seed = customAuthentication.generateSeed();
+const seed = customAuth.generateSeed();
 ```
 
 #### Step Three | Validate the Seed
@@ -435,7 +435,7 @@ Create an endpoint to validate the seed submitted by the client. The endpoint UR
 `{your_host}/fe/autenticacion/api/validacioncertificado`
 
 ```ts
-const token = await customAuthentication.verifySignedSeed(signedSeed);
+const token = await customAuth.verifySignedSeed(seed);
 ```
 
 #### Step Four | Validate the Seed
@@ -444,7 +444,7 @@ Once the authentication flow is complete, restrict the client’s access to your
 
 ```ts
 try {
-  const decoded = await customAuthentication.verifyToken(token);
+  const decoded = await customAuth.verifyToken(token);
 } catch (error) {
   console.error('Token verification failed:', error.message);
 }
@@ -454,7 +454,7 @@ try {
 
 This repo performs the unit/integration tests connecting to the DGII test environment
 
-- First: In order to pass the test locally the first step is to plate your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
+- First: In order to pass the test locally the first step is to place your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
 - Second: create a `.env` file and set a variables:
 
 ```
