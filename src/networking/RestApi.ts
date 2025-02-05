@@ -133,9 +133,7 @@ class RestApi {
         },
       };
       const response = await restClient.postForm(resource, formData, config);
-      if (buyerHost) {
-        console.log('RESPONSEE', response.data);
-      }
+
       return response.data as AuthToken;
     } catch (err) {
       if (axios.isAxiosError(err)) {

@@ -14,6 +14,8 @@ _Do not try to use on frontend application like Reactjs, only use it on the serv
 
 [>> Video Tutorial <<](https://youtu.be/J_D2VBJscxI)
 
+If you want to save time adapting your software use my new cloud service [ecf.mseller.app](https://ecf.mseller.app)
+
 ## Installation
 
 Install dgii-ecf with npm
@@ -356,8 +358,8 @@ generateRandomAlphaNumeric(length);
 Contain methods that allow to format the responses for the communication between sender and receptos and commertial approvals. It validate `ecfType`, `format`, `customer RNC`
 
 ```ts
-const senderReciver = new SenderReceiver();
-const response = senderReciver.getECFDataFromXML(
+const senderReceiver = new SenderReceiver();
+const response = senderReceiver.getECFDataFromXML(
   data,
   '130862346',
   ReveivedStatus['e-CF Recibido']
@@ -395,17 +397,72 @@ Formatter
 
 [More Information ARECF](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscalesElectronicosE-CF/Documentacin%20sobre%20eCF/Formatos%20XML/Formato%20Acuse%20de%20Recibo%20v%201.0.pdf)
 
-## Run Test local environment
+## Custom Authentication
 
-This repo performs the unit test connecting to the DGII test environment
+The `CustomAuthentication` class provides methods to create a custom authentication, generate a seed, validate a seed, verify XML signatures, as well as generate and verify JWT tokens.
 
-- First: In order to pass the test locally the first step is to plate your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
+### Usage
+
+#### Step One | Initialize the class
+
+Initialize the `CustomAuthentication` class with the necessary certificate.
+
+```typescript
+import { CustomAuthentication, P12Reader } from 'dgii-ecf';
+
+const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
+
+const reader = new P12Reader(secret);
+const certs = reader.getKeyFromFile(
+  path.resolve(__dirname, `../../test_cert/'your certificate'}`)
+);
+
+const customAuth = new CustomAuthentication(cert);
+```
+
+#### Step Two | Generate and send the seed
+
+Generate a seed and send it to the client. Ensure the client can accesses the seed via the endpoint following the DGII standard:
+`{your_host}/fe/autenticacion/api/semilla`
+
+```ts
+const seed = customAuth.generateSeed();
+```
+
+#### Step Three | Validate the Seed
+
+Create an endpoint to validate the seed submitted by the client. The endpoint URL should follow the DGII standard:
+`{your_host}/fe/autenticacion/api/validacioncertificado`
+
+```ts
+const token = await customAuth.verifySignedSeed(seed);
+```
+
+#### Step Four | Validate the Seed
+
+Once the authentication flow is complete, restrict the client’s access to your resources. Validate the access token before allowing access to the protected endpoint like `/fe/recepción/api/ecf`
+
+```ts
+try {
+  const decoded = await customAuth.verifyToken(token);
+} catch (error) {
+  console.error('Token verification failed:', error.message);
+}
+```
+
+## Run Integration Test local environment
+
+This repo performs the unit/integration tests connecting to the DGII test environment
+
+- First: In order to pass the test locally the first step is to place your certificate into the directory `src/test_cert` current emtpy, for security reason `.p12` gets ignored.
 - Second: create a `.env` file and set a variables:
 
 ```
+
 CERTIFICATE_NAME='your_certificate.p12'
 CERTIFICATE_TEST_PASSWORD=''
 RNC_EMISOR=''
+
 ```
 
 Install dependencies
