@@ -1,6 +1,7 @@
 import { DOMParser } from '@xmldom/xmldom';
 import { js2xml } from 'xml-js';
 import { getCurrentFormattedDateTime } from '../utils/getCurrentFormattedDateTime';
+import busboy from 'busboy';
 
 //https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscalesElectronicosE-CF/Documentacin%20sobre%20eCF/Formatos%20XML/Formato%20Acuse%20de%20Recibo%20v%201.0.pdf
 export enum NoReceivedCode {
@@ -26,7 +27,8 @@ export const validEncfType = ['31', '33', '34', '44'];
  */
 export class SenderReceiver {
   /**
-   * Parse XML Resonse to XML DOM
+   * @deprecated This method is deprecated and will be removed in future versions.
+   * Use `parseMultipart` and `newParseBody` instead.
    * @param xmlString
    * @returns
    */
@@ -42,6 +44,71 @@ export class SenderReceiver {
 
       // // Parse the XML string
       return parser.parseFromString(result, 'text/xml');
+    } catch (err) {
+      throw new Error(JSON.stringify(err));
+    }
+  };
+
+  /**
+   * Parse multipart/form-data to get the XML content
+   * When a new file is uploaded, the file's content is available as multipart
+   * @param body
+   * @param contentType
+   * @returns
+   */
+  parseMultipart = (
+    body: string,
+    contentType: string,
+    isBased64Encoded = false
+  ): Promise<{ filename: string; xmlContent: string }> => {
+    return new Promise((resolve, reject) => {
+      const bb = busboy({ headers: { 'content-type': contentType } });
+      let xmlContent = '';
+      let filename = '';
+
+      bb.on('file', (fieldname, file, fileInfo) => {
+        filename = fileInfo.filename;
+        file.on('data', (data) => {
+          xmlContent += data.toString();
+        });
+      });
+
+      bb.on('finish', () => {
+        if (!filename || !xmlContent) {
+          reject(new Error('Incomplete form data'));
+        } else {
+          resolve({ filename, xmlContent });
+        }
+      });
+
+      bb.on('error', (error) => {
+        reject(error);
+      });
+
+      if (body) {
+        try {
+          const result = isBased64Encoded
+            ? Buffer.from(body, 'base64')
+            : Buffer.from(body);
+          bb.end(result);
+        } catch (error) {
+          reject(new Error('Failed to parse event body'));
+        }
+      } else {
+        reject(new Error('Event body is null'));
+      }
+    });
+  };
+  /**
+   * Pase XML Response to XML DOM
+   * @param xmlString
+   * @returns
+   */
+  simpleXMLParseBody = (xmlString: string): Document => {
+    try {
+      const parser = new DOMParser();
+
+      return parser.parseFromString(xmlString, 'text/xml');
     } catch (err) {
       throw new Error(JSON.stringify(err));
     }
