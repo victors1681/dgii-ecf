@@ -186,13 +186,15 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      console.error(
-        'Error sending the document, sendElectronicDocumentApi',
-        err
-      );
+      console.error('Error sending sendElectronicDocument API:', err);
       if (axios.isAxiosError(err)) {
-        throw err.response?.data;
+        console.error('API error response:', err.response?.data);
+        throw (
+          err.response?.data ||
+          new Error('API error without response data' + JSON.stringify(err))
+        );
       }
+      console.error('Unknown error type:', err);
       throw err;
     }
   };
@@ -278,6 +280,7 @@ class RestApi {
       const formData = new FormData();
       formData.append('xml', stream, options);
 
+      console.log('Sending summary to:', { base: BaseUrl.CF, resource });
       const response = await restClient.post(resource, formData, {
         baseURL: BaseUrl.CF, //use FC endpoint
         headers: {
@@ -288,9 +291,15 @@ class RestApi {
 
       return response.data as InvoiceSummaryResponse;
     } catch (err) {
+      console.error('Error sending summary API:', err);
       if (axios.isAxiosError(err)) {
-        throw err.response?.data;
+        console.error('API error response:', err.response?.data);
+        throw (
+          err.response?.data ||
+          new Error('API error without response data' + JSON.stringify(err))
+        );
       }
+      console.error('Unknown error type:', err);
       throw err;
     }
   };
