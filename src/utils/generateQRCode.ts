@@ -17,7 +17,9 @@ export const generateFcQRCodeURL = (
   env: ENVIRONMENT
 ): string => {
   return encodeURI(
-    `${BaseUrl.CF}/${env}/consultatimbrefc?rncemisor=${rncemisor}&encf=${encf}&montototal=${montototal}&codigoseguridad=${codigoseguridad}`
+    `${
+      BaseUrl.CF
+    }/${env.toLocaleLowerCase()}/consultatimbrefc?rncemisor=${rncemisor}&encf=${encf}&montototal=${montototal}&codigoseguridad=${codigoseguridad}`
   );
 };
 
@@ -50,6 +52,8 @@ export const generateEcfQRCodeURL = (
   }
 
   return encodeURI(
-    `${BaseUrl.ECF}/${env}/consultatimbre?rncemisor=${rncemisor}&${rncCompradorParam}encf=${encf}&FechaEmision=${fechaEmision}&montototal=${montototal}&FechaFirma=${fechaFirma}&codigoseguridad=${codigoseguridad}`
+    `${
+      BaseUrl.ECF
+    }/${env.toLocaleLowerCase()}/consultatimbre?rncemisor=${rncemisor}&${rncCompradorParam}encf=${encf}&FechaEmision=${fechaEmision}&montototal=${montototal}&FechaFirma=${fechaFirma}&codigoseguridad=${codigoseguridad}`
   );
 };
