@@ -1,4 +1,4 @@
-import ecfReference from './ecf-references/ecf.json';
+import ecfReference from './ecf-references/ecf';
 
 export const transformeLowercasePayloadToCamelcase = (
   source: any,
