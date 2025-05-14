@@ -49,11 +49,13 @@ describe('Custom Transformer ', () => {
             preciounitarioitem: 25.0,
             descuentomonto: 60.0,
             tablasubdescuento: {
-              subdescuento: {
-                tiposubdescuento: '%',
-                subdescuentoporcentaje: 10.0,
-                montosubdescuento: 60.0,
-              },
+              subdescuento: [
+                {
+                  tiposubdescuento: '%',
+                  subdescuentoporcentaje: 10.0,
+                  montosubdescuento: 60.0,
+                },
+              ],
             },
             montoitem: 540.0,
           },
