@@ -120,7 +120,6 @@ describe('Test util function ', () => {
     );
 
     const result = validateXMLCertificate(xmlSigned);
-    console.log('resultresultresult', result);
     expect(result.isValid).toBeTruthy();
     expect(result.cert).toBeDefined();
   });
