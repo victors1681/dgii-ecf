@@ -6,3 +6,4 @@ export * from './editXmlValue';
 export * from './getXmlFromBodyResponse';
 export * from './convertECF32ToRFCE';
 export * from './validateXMLCertificate';
+export * from './customTransformers';

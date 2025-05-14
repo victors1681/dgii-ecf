@@ -111,6 +111,7 @@ describe('Test Authentication flow', () => {
       TrackStatusEnum.REJECTED,
       TrackStatusEnum.IN_PROCESS,
       TrackStatusEnum.ACCEPTED,
+      TrackStatusEnum.CONDITIONAL_ACCEPTED,
     ]).toContain(response?.estado);
   });
 

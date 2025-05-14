@@ -5,7 +5,7 @@
             "IdDoc": {
                 "TipoeCF": 32,
                 "eNCF": "E320005000101",
-                "TipoIngresos": "01",
+                "TipoIngresos": "05",
                 "TipoPago": 1,
                 "TablaFormasPago": {
                     "FormaDePago": {

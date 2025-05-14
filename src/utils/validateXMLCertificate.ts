@@ -119,10 +119,6 @@ function validateXmlCertificate(
 
     const cert = new crypto.X509Certificate(certPEM);
 
-    const now = new Date();
-    if (new Date(cert.validFrom) > now || new Date(cert.validTo) < now) {
-      throw new Error('Certificate is expired or not yet valid.');
-    }
     return { isValid: true, cert };
   } catch (error: unknown) {
     if (!options.silent && error instanceof Error) {

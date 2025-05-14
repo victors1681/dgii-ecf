@@ -353,6 +353,15 @@ import { generateRandomAlphaNumeric } from 'dgii-ecf';
 generateRandomAlphaNumeric(length);
 ```
 
+Transform a JSON payload with lowercase keys to camelCase keys based on a reference JSON object.
+
+```ts
+import { transformeLowercasePayloadToCamelcase } from 'dgii-ecf';
+// const transformedPayload = transformeLowercasePayloadToCamelcase(sourcePayload, referenceObject);
+// Example with internal ECF reference
+const transformedPayload = transformeLowercasePayloadToCamelcase(sourcePayload);
+```
+
 ### Sender Receiver
 
 Contain methods that allow to format the responses for the communication between sender and receptos and commertial approvals. It validate `ecfType`, `format`, `customer RNC`
@@ -449,6 +458,35 @@ try {
   console.error('Token verification failed:', error.message);
 }
 ```
+
+### Read Certificate Information from Base64
+
+You can extract basic information (subject, issuer, expiration date, etc.) from a base64-encoded `.p12` certificate using the `P12Reader` class:
+
+```typescript
+import { P12Reader } from 'dgii-ecf';
+import fs from 'fs';
+
+const secret = 'certificate_passphrase';
+const reader = new P12Reader(secret);
+
+// Read the .p12 file as base64 string
+const p12Base64 = fs.readFileSync(
+  path.resolve(__dirname, '../../test_cert/[your_identity.p12]'),
+  'base64'
+);
+
+// Get certificate info from base64 string
+const certInfo = reader.getCertificateInfoFromBase64(p12Base64);
+
+console.log('Subject:', certInfo.subject);
+console.log('Issuer:', certInfo.issuer);
+console.log('Valid From:', certInfo.validFrom);
+console.log('Valid To:', certInfo.validTo);
+console.log('Serial Number:', certInfo.serialNumber);
+```
+
+This method is useful if you receive the certificate as a base64 string (for example, from an S3 bucket or environment variable) and want to extract its metadata without saving it to disk.
 
 ## Run Integration Test local environment
 

@@ -8,7 +8,7 @@
       <IndicadorEnvioDiferido>1</IndicadorEnvioDiferido>
       <IndicadorMontoGravado>0</IndicadorMontoGravado>
       <IndicadorServicioTodoIncluido>1</IndicadorServicioTodoIncluido>
-      <TipoIngresos>1</TipoIngresos>
+      <TipoIngresos>05</TipoIngresos>
       <TipoPago>1</TipoPago>
       <FechaLimitePago>FechaLimitePago1</FechaLimitePago>
       <TerminoPago>TerminoPago1</TerminoPago>
