@@ -10,7 +10,6 @@ import { ENVIRONMENT } from '../../../src/networking';
 import { getXmlFromBodyResponse } from '../getXmlFromBodyResponse';
 import { convertECF32ToRFCE } from '../convertECF32ToRFCE';
 import { validateXMLCertificate } from '../validateXMLCertificate';
-import exp from 'constants';
 
 describe('Test util function ', () => {
   it('get six digit from the signature', () => {

@@ -117,6 +117,87 @@ class P12Reader {
       throw new Error(`${err}`);
     }
   };
+
+  /**
+   * Get basic information from the p12 certificate, including expiration date.
+   * @param fileName filename.p12 with the full file path
+   */
+  getCertificateInfo = (
+    fileName: string
+  ): {
+    subject: string;
+    issuer: string;
+    validFrom: Date;
+    validTo: Date;
+    serialNumber: string;
+  } => {
+    try {
+      const p12File = fs.readFileSync(fileName, 'base64');
+      const p12Der = forge.util.decode64(p12File);
+      const p12Asn1 = forge.asn1.fromDer(p12Der);
+      const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, this.passphrase);
+
+      const certPem = this.getCertificateFromP12(p12);
+      if (!certPem) {
+        throw new Error('Certificate not found in p12');
+      }
+      const cert = forge.pki.certificateFromPem(certPem);
+
+      return {
+        subject: cert.subject.attributes
+          .map((attr) => `${attr.shortName}=${attr.value}`)
+          .join(', '),
+        issuer: cert.issuer.attributes
+          .map((attr) => `${attr.shortName}=${attr.value}`)
+          .join(', '),
+        validFrom: cert.validity.notBefore,
+        validTo: cert.validity.notAfter,
+        serialNumber: cert.serialNumber,
+      };
+    } catch (err) {
+      throw new Error(`Unable to extract certificate info: ${err}`);
+    }
+  };
+
+  /**
+   * Get basic information from a base64-encoded p12 certificate, including expiration date.
+   * @param p12base64 base64-encoded p12 certificate string
+   */
+  getCertificateInfoFromBase64 = (
+    p12base64: string
+  ): {
+    subject: string;
+    issuer: string;
+    validFrom: Date;
+    validTo: Date;
+    serialNumber: string;
+  } => {
+    try {
+      const p12Der = forge.util.decode64(p12base64);
+      const p12Asn1 = forge.asn1.fromDer(p12Der);
+      const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, this.passphrase);
+
+      const certPem = this.getCertificateFromP12(p12);
+      if (!certPem) {
+        throw new Error('Certificate not found in p12');
+      }
+      const cert = forge.pki.certificateFromPem(certPem);
+
+      return {
+        subject: cert.subject.attributes
+          .map((attr) => `${attr.shortName}=${attr.value}`)
+          .join(', '),
+        issuer: cert.issuer.attributes
+          .map((attr) => `${attr.shortName}=${attr.value}`)
+          .join(', '),
+        validFrom: cert.validity.notBefore,
+        validTo: cert.validity.notAfter,
+        serialNumber: cert.serialNumber,
+      };
+    } catch (err) {
+      throw new Error(`Unable to extract certificate info: ${err}`);
+    }
+  };
 }
 
 export default P12Reader;
