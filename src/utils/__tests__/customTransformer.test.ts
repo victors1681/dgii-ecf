@@ -124,7 +124,7 @@ describe('Custom Transformer ', () => {
             TipoeCF: '31',
             TotalPaginas: 1,
             eNCF: 'E310000009175',
-            fechavencimientosecuencia: '31-12-2025',
+            FechaVencimientoSecuencia: '31-12-2025',
           },
           Totales: {
             ITBIS1: 18,

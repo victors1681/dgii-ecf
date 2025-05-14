@@ -15,6 +15,7 @@ export const ECF = {
         FechaDesde: 'FechaDesde1',
         FechaHasta: 'FechaHasta1',
         TotalPaginas: '2',
+        FechaVencimientoSecuencia: 'FechaVencimientoSecuencia1',
       },
       Emisor: {
         RNCEmisor: 'RNCEmisor1',
