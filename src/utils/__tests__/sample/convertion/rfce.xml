@@ -5,7 +5,7 @@
     <IdDoc>
       <TipoeCF>32</TipoeCF>
       <eNCF>eNCF________1</eNCF>
-      <TipoIngresos>1</TipoIngresos>
+      <TipoIngresos>05</TipoIngresos>
       <TipoPago>1</TipoPago>
       <TablaFormasPago>
         <FormaDePago>

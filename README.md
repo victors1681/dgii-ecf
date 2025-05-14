@@ -353,6 +353,15 @@ import { generateRandomAlphaNumeric } from 'dgii-ecf';
 generateRandomAlphaNumeric(length);
 ```
 
+Transform a JSON payload with lowercase keys to camelCase keys based on a reference JSON object.
+
+```ts
+import { transformeLowercasePayloadToCamelcase } from 'dgii-ecf';
+// const transformedPayload = transformeLowercasePayloadToCamelcase(sourcePayload, referenceObject);
+// Example with internal ECF reference
+const transformedPayload = transformeLowercasePayloadToCamelcase(sourcePayload);
+```
+
 ### Sender Receiver
 
 Contain methods that allow to format the responses for the communication between sender and receptos and commertial approvals. It validate `ecfType`, `format`, `customer RNC`

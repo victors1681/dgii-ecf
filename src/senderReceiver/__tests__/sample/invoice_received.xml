@@ -6,7 +6,7 @@
 			<eNCF>E310000000007</eNCF>
 			<FechaVencimientoSecuencia>31-12-2021</FechaVencimientoSecuencia>
 			<IndicadorMontoGravado>0</IndicadorMontoGravado>
-			<TipoIngresos>01</TipoIngresos>
+			<TipoIngresos>05</TipoIngresos>
 			<TipoPago>1</TipoPago>
 			<TablaFormasPago>
 				<FormaDePago>
