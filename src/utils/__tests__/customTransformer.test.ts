@@ -94,11 +94,13 @@ describe('Custom Transformer ', () => {
               NumeroLinea: '1',
               PrecioUnitarioItem: 25,
               TablaSubDescuento: {
-                SubDescuento: {
-                  montosubdescuento: 60,
-                  subdescuentoporcentaje: 10,
-                  tiposubdescuento: '%',
-                },
+                SubDescuento: [
+                  {
+                    MontoSubDescuento: 60,
+                    SubDescuentoPorcentaje: 10,
+                    TipoSubDescuento: '%',
+                  },
+                ],
               },
               UnidadMedida: '43',
             },
