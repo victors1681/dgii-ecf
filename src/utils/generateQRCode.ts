@@ -16,11 +16,13 @@ export const generateFcQRCodeURL = (
   codigoseguridad: string,
   env: ENVIRONMENT
 ): string => {
-  return encodeURI(
-    `${
-      BaseUrl.CF
-    }/${env.toLocaleLowerCase()}/consultatimbrefc?rncemisor=${rncemisor}&encf=${encf}&montototal=${montototal}&codigoseguridad=${codigoseguridad}`
-  );
+  // Encode individual parameters that may contain special characters
+  const encodedRncemisor = encodeURIComponent(rncemisor);
+  const encodedEncf = encodeURIComponent(encf);
+  const encodedMontototal = encodeURIComponent(montototal);
+  const encodedCodigoseguridad = encodeURIComponent(codigoseguridad);
+
+  return `${BaseUrl.CF}/${env.toLowerCase()}/consultatimbrefc?rncemisor=${encodedRncemisor}&encf=${encodedEncf}&montototal=${encodedMontototal}&codigoseguridad=${encodedCodigoseguridad}`;
 };
 
 /**
@@ -45,15 +47,19 @@ export const generateEcfQRCodeURL = (
   codigoseguridad: string,
   env: ENVIRONMENT
 ): string => {
-  let rncCompradorParam = `RncComprador=${rncComprador}&`;
+  // Encode individual parameters that may contain special characters
+  const encodedRncemisor = encodeURIComponent(rncemisor);
+  const encodedEncf = encodeURIComponent(encf);
+  const encodedMontototal = encodeURIComponent(montototal);
+  const encodedFechaEmision = encodeURIComponent(fechaEmision);
+  const encodedFechaFirma = encodeURIComponent(fechaFirma);
+  const encodedCodigoseguridad = encodeURIComponent(codigoseguridad);
 
-  if (/E43/i.test(encf) || /E47/i.test(encf) || !rncComprador) {
-    rncCompradorParam = ''; //remove from the URL
+  let rncCompradorParam = '';
+  if (rncComprador && !/E43/i.test(encf) && !/E47/i.test(encf)) {
+    const encodedRncComprador = encodeURIComponent(rncComprador);
+    rncCompradorParam = `RncComprador=${encodedRncComprador}&`;
   }
 
-  return encodeURI(
-    `${
-      BaseUrl.ECF
-    }/${env.toLocaleLowerCase()}/consultatimbre?rncemisor=${rncemisor}&${rncCompradorParam}encf=${encf}&FechaEmision=${fechaEmision}&montototal=${montototal}&FechaFirma=${fechaFirma}&codigoseguridad=${codigoseguridad}`
-  );
+  return `${BaseUrl.ECF}/${env.toLowerCase()}/consultatimbre?rncemisor=${encodedRncemisor}&${rncCompradorParam}encf=${encodedEncf}&fechaemision=${encodedFechaEmision}&montototal=${encodedMontototal}&fechafirma=${encodedFechaFirma}&codigoseguridad=${encodedCodigoseguridad}`;
 };
