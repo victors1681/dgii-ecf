@@ -291,15 +291,14 @@ class RestApi {
 
       return response.data as InvoiceSummaryResponse;
     } catch (err) {
-      console.error('Error sending summary API:', err);
       if (axios.isAxiosError(err)) {
         console.error('API error response:', err.response?.data);
         throw (
           err.response?.data ||
-          new Error('API error without response data' + JSON.stringify(err))
+          new Error('Error sending summary API: ' + JSON.stringify(err))
         );
       }
-      console.error('Unknown error type:', err);
+      console.error('Error sending summary API:', err);
       throw err;
     }
   };
