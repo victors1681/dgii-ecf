@@ -45,7 +45,7 @@ describe('Test util function ', () => {
       ENVIRONMENT.DEV
     );
     expect(url).toBe(
-      'https://ecf.dgii.gov.do/testecf/consultatimbre?rncemisor=130862346&RncComprador=111111&encf=E310004567002&FechaEmision=13-11-2022&montototal=180000.00&FechaFirma=14-11-2023%2003:05:27&codigoseguridad=BucMq7'
+      'https://ecf.dgii.gov.do/testecf/consultatimbre?rncemisor=130862346&RncComprador=111111&encf=E310004567002&fechaemision=13-11-2022&montototal=180000.00&fechafirma=14-11-2023%2003%3A05%3A27&codigoseguridad=BucMq7'
     );
   });
 
@@ -61,7 +61,7 @@ describe('Test util function ', () => {
       ENVIRONMENT.DEV
     );
     expect(url).toBe(
-      'https://ecf.dgii.gov.do/testecf/consultatimbre?rncemisor=130862346&encf=E470004567002&FechaEmision=13-11-2022&montototal=180000.00&FechaFirma=14-11-2023%2003:05:27&codigoseguridad=BucMq7'
+      'https://ecf.dgii.gov.do/testecf/consultatimbre?rncemisor=130862346&encf=E470004567002&fechaemision=13-11-2022&montototal=180000.00&fechafirma=14-11-2023%2003%3A05%3A27&codigoseguridad=BucMq7'
     );
   });
 
