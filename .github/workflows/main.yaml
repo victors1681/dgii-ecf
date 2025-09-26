@@ -35,25 +35,25 @@ jobs:
       - run: npm run build --if-present
       - run: npm test
       - run: rm -rf src/test_cert
-      
+
       # Publish to npm registry (primary)
       - name: Setup Node.js for npm
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
       - name: Publish to npm
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      
-      # Publish to GitHub Packages (secondary) 
+
+      # Publish to GitHub Packages (secondary)
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@victors1681'
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@victors1681"
       - name: Update package name for GitHub Packages
         run: |
           npm pkg set name="@victors1681/dgii-ecf"
