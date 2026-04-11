@@ -1,7 +1,6 @@
 import { SignedXml } from 'xml-crypto';
-import KeyInfoProvider from './custom/KeyInfoProvider';
-import Digest from './custom/Digest';
 import { DOMParser } from '@xmldom/xmldom';
+import Digest from './custom/Digest';
 
 export type XMLTag =
   | 'SemillaModel'
@@ -40,35 +39,30 @@ class Signature {
   };
 
   signXml = (xml: string, rootElName: XMLTag | string): string => {
-    SignedXml.HashAlgorithms['http://myDigestAlgorithm'] = Digest;
+    const sig = new SignedXml({
+      privateKey: this._privateKey,
+      publicCert: this._certificatePEM,
+      signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+      canonicalizationAlgorithm:
+        'http://www.w3.org/TR/2001/REC-xml-c14n-20010315',
+    });
 
-    const sig = new SignedXml();
+    // DGII requires a digest over the canonicalized form with sorted xmlns
+    // attributes — see Digest.ts for why. Registered under a custom URI so
+    // xml-crypto will invoke our implementation instead of its built-in sha256.
+    sig.HashAlgorithms['http://myDigestAlgorithm'] = Digest;
 
-    sig.signatureAlgorithm =
-      'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256';
-    sig.keyInfoProvider = new KeyInfoProvider(this._certificatePEM);
-    sig.canonicalizationAlgorithm =
-      'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
-
-    sig.addReference(
-      `//*[local-name(.)='${rootElName}']`,
-      ['http://www.w3.org/2000/09/xmldsig#enveloped-signature'],
-      'http://myDigestAlgorithm',
-      undefined,
-      undefined,
-      undefined,
-      true
-    );
-
-    sig.signingKey = this._privateKey;
+    sig.addReference({
+      xpath: `//*[local-name(.)='${rootElName}']`,
+      transforms: ['http://www.w3.org/2000/09/xmldsig#enveloped-signature'],
+      digestAlgorithm: 'http://myDigestAlgorithm',
+      isEmptyUri: true,
+    });
 
     const doc = new DOMParser().parseFromString(xml, 'text/xml');
-    //clean xml
     this.cleanNodes(doc);
-    //sign
     sig.computeSignature(doc.toString());
-    const signedXml = sig.getSignedXml();
-    return signedXml;
+    return sig.getSignedXml();
   };
 }
 
