@@ -55,6 +55,9 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
     strategy:
       matrix:
         node-version: [22.x]
@@ -74,11 +77,6 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
-      - name: Configure npm authentication
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          npm whoami
-
       - name: Set beta version
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
@@ -86,8 +84,10 @@ jobs:
           npm pkg set version=$BETA_VERSION
           echo "Publishing beta version: $BETA_VERSION"
 
-      - name: Publish beta to npm
-        run: npm publish --tag beta --access public
+      - name: Publish beta to npm (with provenance)
+        run: npm publish --tag beta --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
@@ -111,6 +111,9 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
     strategy:
       matrix:
         node-version: [22.x]
@@ -130,13 +133,10 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
-      - name: Configure npm authentication
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          npm whoami
-
-      - name: Publish to npm
-        run: npm publish --access public
+      - name: Publish to npm (with provenance)
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
