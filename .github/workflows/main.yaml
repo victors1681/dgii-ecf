@@ -1,64 +1,156 @@
-name: Node.js CI
+name: Node.js CI/CD
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 env:
   CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}
   CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
   RNC_EMISOR: ${{ secrets.RNC_EMISOR }}
-jobs:
-  build:
-    runs-on: ubuntu-latest
 
+jobs:
+  # Build and test job - runs on all PRs and pushes
+  build-and-test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [22.x]
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: copy certificate
+
+      - name: Copy certificate
         run: |
           cd src/test_cert && 
           curl --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
           --location https://raw.githubusercontent.com/victors1681/certificates/main/${{ secrets.CERTIFICATE_NAME }}
-      - run: cd src/test_cert && ls
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
-      - run: rm -rf src/test_cert
 
-      # Publish to npm registry (primary)
-      - name: Setup Node.js for npm
+      - name: List certificates
+        run: cd src/test_cert && ls
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test
+
+      - name: Clean up certificates
+        run: rm -rf src/test_cert
+
+  # Publish beta version on PR
+  publish-beta:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
-      - name: Publish to npm
-        run: npm publish
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Set beta version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          BETA_VERSION="${CURRENT_VERSION}-beta.${GITHUB_RUN_NUMBER}"
+          npm pkg set version=$BETA_VERSION
+          echo "Publishing beta version: $BETA_VERSION"
+
+      - name: Publish beta to npm (with provenance)
+        run: npm publish --tag beta --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # Publish to GitHub Packages (secondary)
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://npm.pkg.github.com"
           scope: "@victors1681"
+
       - name: Update package name for GitHub Packages
         run: |
           npm pkg set name="@victors1681/dgii-ecf"
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+
+      - name: Publish beta to GitHub Packages
+        run: npm publish --tag beta --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish production version only on merge to main
+  publish-production:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Publish to npm (with provenance)
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@victors1681"
+
+      - name: Update package name for GitHub Packages
+        run: |
+          npm pkg set name="@victors1681/dgii-ecf"
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+
       - name: Publish to GitHub Packages
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

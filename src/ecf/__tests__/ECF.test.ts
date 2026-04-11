@@ -209,7 +209,7 @@ describe('Test Authentication flow', () => {
 
       //Stream Readable - intentionally set invalid data to trigger error
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      JsonECF32Summary.RFCE.Encabezado.IdDoc.TipoIngresos = 1 as any; //make it fail with wrong data
+      JsonECF32Summary.RFCE.Encabezado.IdDoc.TipoIngresos = '01' as any; //make it fail with wrong data
 
       JsonECF32Summary.RFCE.Encabezado.IdDoc.eNCF = noEcf32;
       //Adding random security code
