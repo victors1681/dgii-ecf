@@ -58,6 +58,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # Required for npm provenance
+      packages: write # Required to publish to GitHub Packages
     strategy:
       matrix:
         node-version: [22.x]
@@ -114,6 +115,7 @@ jobs:
     permissions:
       contents: read
       id-token: write # Required for npm provenance
+      packages: write # Required to publish to GitHub Packages
     strategy:
       matrix:
         node-version: [22.x]
