@@ -82,7 +82,7 @@ jobs:
           echo "Publishing beta version: $BETA_VERSION"
 
       - name: Publish beta to npm
-        run: npm publish --tag beta
+        run: npm publish --tag beta --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -99,7 +99,7 @@ jobs:
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
 
       - name: Publish beta to GitHub Packages
-        run: npm publish --tag beta
+        run: npm publish --tag beta --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -128,7 +128,7 @@ jobs:
         run: npm run build --if-present
 
       - name: Publish to npm
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -145,6 +145,6 @@ jobs:
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
 
       - name: Publish to GitHub Packages
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
