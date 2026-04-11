@@ -84,10 +84,8 @@ jobs:
           npm pkg set version=$BETA_VERSION
           echo "Publishing beta version: $BETA_VERSION"
 
-      - name: Publish beta to npm (with provenance)
+      - name: Publish beta to npm (with provenance via Trusted Publishing)
         run: npm publish --tag beta --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
@@ -133,10 +131,8 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
-      - name: Publish to npm (with provenance)
+      - name: Publish to npm (with provenance via Trusted Publishing)
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
