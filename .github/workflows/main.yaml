@@ -21,12 +21,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          
+
       - name: Copy certificate
         run: |
           cd src/test_cert && 
@@ -34,19 +34,19 @@ jobs:
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
           --location https://raw.githubusercontent.com/victors1681/certificates/main/${{ secrets.CERTIFICATE_NAME }}
-          
+
       - name: List certificates
         run: cd src/test_cert && ls
-        
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build
         run: npm run build --if-present
-        
+
       - name: Run tests
         run: npm test
-        
+
       - name: Clean up certificates
         run: rm -rf src/test_cert
 
@@ -61,43 +61,43 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build
         run: npm run build --if-present
-        
+
       - name: Set beta version
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           BETA_VERSION="${CURRENT_VERSION}-beta.${GITHUB_RUN_NUMBER}"
           npm version $BETA_VERSION --no-git-tag-version
           echo "Publishing beta version: $BETA_VERSION"
-          
+
       - name: Publish beta to npm
         run: npm publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://npm.pkg.github.com"
           scope: "@victors1681"
-          
+
       - name: Update package name for GitHub Packages
         run: |
           npm pkg set name="@victors1681/dgii-ecf"
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
-          
+
       - name: Publish beta to GitHub Packages
         run: npm publish --tag beta
         env:
@@ -114,36 +114,36 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build
         run: npm run build --if-present
-        
+
       - name: Publish to npm
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://npm.pkg.github.com"
           scope: "@victors1681"
-          
+
       - name: Update package name for GitHub Packages
         run: |
           npm pkg set name="@victors1681/dgii-ecf"
           npm pkg set publishConfig.registry="https://npm.pkg.github.com"
-          
+
       - name: Publish to GitHub Packages
         run: npm publish
         env:
