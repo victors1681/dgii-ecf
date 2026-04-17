@@ -208,7 +208,7 @@ describe('Sign Arbitrary XML Documents', () => {
     expect(rootNodes.length).toBe(1);
   });
 
-  it('Should handle malformed XML gracefully when root element can be detected', () => {
+  it('Should throw error for invalid XML with no root element (auto-detect)', () => {
     const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
 
     const reader = new P12Reader(secret);
@@ -223,19 +223,37 @@ describe('Sign Arbitrary XML Documents', () => {
       return;
     }
 
-    // Malformed but parseable XML - xmldom is lenient and will recover
-    const malformedXml = `<?xml version="1.0" encoding="utf-8"?>
-<Document>
-  <Field1>Value1</Field1>
-  <Field2>Value2
-</Document>`;
+    // Garbage input - no valid XML structure
+    const invalidXml = 'this is not xml at all';
 
     const signature = new Signature(certs.key, certs.cert);
 
-    // Should still work as xmldom can parse it (even though it's malformed)
-    // The error handler will catch warnings but not prevent signing
-    const signedXml = signature.signXml(malformedXml);
-    expect(signedXml).toContain('<Signature');
-    expect(signedXml).toContain('<Document>');
+    // Should throw error - no root element can be detected
+    expect(() => signature.signXml(invalidXml)).toThrow();
+  });
+
+  it('Should throw error for XML with invalid structure (explicit root)', () => {
+    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
+
+    const reader = new P12Reader(secret);
+    const certs = reader.getKeyFromFile(
+      path.resolve(
+        __dirname,
+        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
+      )
+    );
+
+    if (!certs.key || !certs.cert) {
+      return;
+    }
+
+    // XML with multiple root elements - triggers parser error
+    const invalidXml = '<Doc><A></A>';
+
+    const signature = new Signature(certs.key, certs.cert);
+
+    // Should throw error even when explicit root element is provided
+    // (validation happens consistently regardless of explicit/auto-detect)
+    expect(() => signature.signXml(invalidXml, 'Doc')).toThrow('Invalid XML');
   });
 });

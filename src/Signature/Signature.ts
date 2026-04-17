@@ -50,17 +50,17 @@ class Signature {
   };
 
   /**
-   * Extracts the root element name from an XML document.
+   * Parses XML string with strict error handling.
    * @param xml - The XML document as a string
-   * @returns The local name of the root element
+   * @returns The parsed Document
    * @throws Error if XML is invalid or cannot be parsed
    */
-  private getRootElementName = (xml: string): string => {
+  private parseXmlStrict = (xml: string): Document => {
     let parseError: string | null = null;
 
     const errorHandler = {
       warning: () => {
-        // Warnings are logged but don't prevent parsing
+        // Warnings don't prevent parsing
       },
       error: (msg: string) => {
         parseError = msg;
@@ -73,18 +73,19 @@ class Signature {
     const doc = new DOMParser({ errorHandler }).parseFromString(
       xml,
       'text/xml'
-    );
+    ) as unknown as Document;
+
+    if (parseError) {
+      throw new Error('Invalid XML: ' + parseError);
+    }
+
     const rootElement = doc.documentElement;
 
     if (!rootElement) {
       throw new Error('Unable to parse XML or find root element');
     }
 
-    // Detect parse errors (xmldom places errors in <parsererror> element or via errorHandler)
-    if (parseError) {
-      throw new Error('Invalid XML: ' + parseError);
-    }
-
+    // Detect parse errors (xmldom places errors in <parsererror> element)
     if (
       rootElement.nodeName === 'parsererror' ||
       rootElement.localName === 'parsererror'
@@ -94,7 +95,7 @@ class Signature {
       );
     }
 
-    return rootElement.localName || rootElement.nodeName;
+    return doc;
   };
 
   /**
@@ -120,8 +121,15 @@ class Signature {
    * const signedPostulacion = signature.signXml(postulacionXml);
    */
   signXml = (xml: string, rootElName?: DGIIDocumentType): string => {
-    // Auto-detect root element if not provided
-    const elementName = rootElName || this.getRootElementName(xml);
+    // Parse XML once with strict error handling - validates regardless of explicit/auto-detect path
+    const doc = this.parseXmlStrict(xml);
+
+    // Auto-detect root element if not provided, reusing the parsed DOM
+    const elementName =
+      rootElName ||
+      doc.documentElement.localName ||
+      doc.documentElement.nodeName;
+
     const sig = new SignedXml({
       privateKey: this._privateKey,
       publicCert: this._certificatePEM,
@@ -142,7 +150,7 @@ class Signature {
       isEmptyUri: true,
     });
 
-    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    // Reuse the same parsed DOM - no need to parse twice
     this.cleanNodes(doc);
     sig.computeSignature(doc.toString());
     return sig.getSignedXml();
