@@ -68,7 +68,7 @@ describe('Sign Arbitrary XML Documents', () => {
       "//*[local-name(.)='PostulacionID']",
       doc
     ) as any;
-    expect(postulacionIDNodes[0].firstChild.data).toBe('51201');
+    expect(postulacionIDNodes[0].firstChild.data).toBe('12345');
   });
 
   it('Should sign any custom XML root element', () => {
@@ -161,7 +161,7 @@ describe('Sign Arbitrary XML Documents', () => {
       "//*[local-name(.)='PostulacionID']",
       doc
     ) as any;
-    expect(postulacionIDNodes[0].firstChild.data).toBe('51201');
+    expect(postulacionIDNodes[0].firstChild.data).toBe('12345');
   });
 
   it('Should auto-detect root element from any custom XML', () => {
