@@ -22,7 +22,9 @@ export const generateFcQRCodeURL = (
   const encodedMontototal = encodeURIComponent(montototal);
   const encodedCodigoseguridad = encodeURIComponent(codigoseguridad);
 
-  return `${BaseUrl.CF}/${env.toLowerCase()}/consultatimbrefc?rncemisor=${encodedRncemisor}&encf=${encodedEncf}&montototal=${encodedMontototal}&codigoseguridad=${encodedCodigoseguridad}`;
+  return `${
+    BaseUrl.CF
+  }/${env.toLowerCase()}/consultatimbrefc?rncemisor=${encodedRncemisor}&encf=${encodedEncf}&montototal=${encodedMontototal}&codigoseguridad=${encodedCodigoseguridad}`;
 };
 
 /**
@@ -61,5 +63,7 @@ export const generateEcfQRCodeURL = (
     rncCompradorParam = `RncComprador=${encodedRncComprador}&`;
   }
 
-  return `${BaseUrl.ECF}/${env.toLowerCase()}/consultatimbre?rncemisor=${encodedRncemisor}&${rncCompradorParam}encf=${encodedEncf}&fechaemision=${encodedFechaEmision}&montototal=${encodedMontototal}&fechafirma=${encodedFechaFirma}&codigoseguridad=${encodedCodigoseguridad}`;
+  return `${
+    BaseUrl.ECF
+  }/${env.toLowerCase()}/consultatimbre?rncemisor=${encodedRncemisor}&${rncCompradorParam}encf=${encodedEncf}&fechaemision=${encodedFechaEmision}&montototal=${encodedMontototal}&fechafirma=${encodedFechaFirma}&codigoseguridad=${encodedCodigoseguridad}`;
 };
