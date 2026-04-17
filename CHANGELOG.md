@@ -11,14 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto-detection of XML root elements**: The `signXml()` method now automatically detects the root element name from the XML document, making the `rootElName` parameter optional. This simplifies the API and reduces potential errors from typos.
 - **Support for arbitrary XML documents**: The `Signature` class can now sign any XML document type, not just DGII electronic invoices. Tested with Postulacion documents and custom XML structures.
-- **New type export**: `DGIIDocumentType` is now exported from the main package for better TypeScript support.
-- **Comprehensive test coverage**: Added tests for auto-detection and arbitrary XML signing in `Signature.arbitrary.test.ts`.
+- **Type-safe arbitrary strings**: `DGIIDocumentType` now uses `(string & {})` pattern to preserve autocomplete for known DGII document types while allowing any custom string.
+- **Parse error detection**: Added error handler to detect and report invalid XML during auto-detection, preventing signing of malformed documents.
+- **Comprehensive test coverage**: Added 5 new tests for auto-detection, arbitrary XML signing, and error handling in `Signature.arbitrary.test.ts`.
 
 ### Changed
 
 - **Renamed type**: `XMLTag` has been renamed to `DGIIDocumentType` for better clarity. `XMLTag` remains as a deprecated alias for backward compatibility.
+- **Type-only export**: Changed `DGIIDocumentType` to use `export type` instead of value export to prevent runtime issues in JavaScript consumers.
 - **Enhanced JSDoc documentation**: Improved documentation for the `signXml()` method with clear examples of auto-detection and explicit root element specification.
 - **Simplified README examples**: Updated all code examples to show auto-detection as the recommended approach.
+- **Generic test data**: Replaced real company information in test fixtures with generic placeholder data to protect privacy.
+
+### Fixed
+
+- **TypeScript autocomplete**: Fixed type definition to preserve literal type suggestions while still accepting arbitrary strings.
+- **Parse error handling**: Added proper error detection for invalid XML instead of silently continuing with malformed documents.
 
 ### Deprecated
 

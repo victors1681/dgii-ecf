@@ -4,7 +4,7 @@ import Digest from './custom/Digest';
 
 /**
  * Common DGII electronic document types.
- * You can also pass any custom XML root element name as a string.
+ * Provides autocomplete for known types while allowing any custom string.
  */
 export type DGIIDocumentType =
   | 'SemillaModel'
@@ -12,7 +12,8 @@ export type DGIIDocumentType =
   | 'RFCE'
   | 'ARECF'
   | 'ACECF'
-  | 'ANECF';
+  | 'ANECF'
+  | (string & {});
 
 /**
  * @deprecated Use DGIIDocumentType instead
@@ -32,6 +33,7 @@ class Signature {
    * Remove empty spaces and new lines
    * @param node
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private cleanNodes = (node: any) => {
     for (let n = 0; n < node.childNodes.length; n++) {
       const child = node.childNodes[n];
@@ -51,13 +53,45 @@ class Signature {
    * Extracts the root element name from an XML document.
    * @param xml - The XML document as a string
    * @returns The local name of the root element
+   * @throws Error if XML is invalid or cannot be parsed
    */
   private getRootElementName = (xml: string): string => {
-    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    let parseError: string | null = null;
+
+    const errorHandler = {
+      warning: () => {
+        // Warnings are logged but don't prevent parsing
+      },
+      error: (msg: string) => {
+        parseError = msg;
+      },
+      fatalError: (msg: string) => {
+        parseError = msg;
+      },
+    };
+
+    const doc = new DOMParser({ errorHandler }).parseFromString(
+      xml,
+      'text/xml'
+    );
     const rootElement = doc.documentElement;
 
     if (!rootElement) {
       throw new Error('Unable to parse XML or find root element');
+    }
+
+    // Detect parse errors (xmldom places errors in <parsererror> element or via errorHandler)
+    if (parseError) {
+      throw new Error('Invalid XML: ' + parseError);
+    }
+
+    if (
+      rootElement.nodeName === 'parsererror' ||
+      rootElement.localName === 'parsererror'
+    ) {
+      throw new Error(
+        'Invalid XML: ' + (rootElement.textContent || 'Parse error')
+      );
     }
 
     return rootElement.localName || rootElement.nodeName;
@@ -71,6 +105,7 @@ class Signature {
    *                     Common DGII types: 'ECF', 'RFCE', 'ARECF', 'ACECF', 'ANECF', 'SemillaModel'
    *                     Can also be any custom element like 'Postulacion', 'CustomDocument', etc.
    * @returns The signed XML document with embedded <Signature> element
+   * @throws Error if XML is invalid or cannot be parsed
    *
    * @example
    * // Auto-detect root element (recommended for simplicity)
@@ -84,7 +119,7 @@ class Signature {
    * // Sign any arbitrary XML document
    * const signedPostulacion = signature.signXml(postulacionXml);
    */
-  signXml = (xml: string, rootElName?: DGIIDocumentType | string): string => {
+  signXml = (xml: string, rootElName?: DGIIDocumentType): string => {
     // Auto-detect root element if not provided
     const elementName = rootElName || this.getRootElementName(xml);
     const sig = new SignedXml({

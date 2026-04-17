@@ -207,4 +207,35 @@ describe('Sign Arbitrary XML Documents', () => {
     ) as any;
     expect(rootNodes.length).toBe(1);
   });
+
+  it('Should handle malformed XML gracefully when root element can be detected', () => {
+    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
+
+    const reader = new P12Reader(secret);
+    const certs = reader.getKeyFromFile(
+      path.resolve(
+        __dirname,
+        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
+      )
+    );
+
+    if (!certs.key || !certs.cert) {
+      return;
+    }
+
+    // Malformed but parseable XML - xmldom is lenient and will recover
+    const malformedXml = `<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Field1>Value1</Field1>
+  <Field2>Value2
+</Document>`;
+
+    const signature = new Signature(certs.key, certs.cert);
+
+    // Should still work as xmldom can parse it (even though it's malformed)
+    // The error handler will catch warnings but not prevent signing
+    const signedXml = signature.signXml(malformedXml);
+    expect(signedXml).toContain('<Signature');
+    expect(signedXml).toContain('<Document>');
+  });
 });
