@@ -60,7 +60,8 @@ class Signature {
 
     const errorHandler = {
       warning: () => {
-        // Warnings don't prevent parsing
+        // Warnings are intentionally ignored - xmldom is lenient by design
+        // and many recoverable issues produce warnings that don't affect signing
       },
       error: (msg: string) => {
         parseError = msg;
