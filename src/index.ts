@@ -14,4 +14,5 @@ if (process.env.CURRENT_ENV !== 'test') {
 }
 
 export { ECF, P12Reader, Signature };
+export { DGIIDocumentType } from './Signature/Signature';
 export default ECF;

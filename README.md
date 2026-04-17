@@ -124,7 +124,25 @@ const seedXml = fs.readFileSync(
 
 //Sign the document
 const signature = new Signature(certs.key, certs.cert);
-const signedXml = signature.signXml(seedXml, 'SemillaModel');
+const signedXml = signature.signXml(seedXml);
+```
+
+#### Sign Arbitrary XML Documents
+
+The `Signature` class can sign **any XML document**, not just DGII electronic invoices. The root element is automatically detected, so you don't need to specify it:
+
+```ts
+import { Signature } from 'dgii-ecf';
+
+const signature = new Signature(certs.key, certs.cert);
+
+// Simplest usage - auto-detects root element (recommended)
+const signedECF = signature.signXml(ecfXml);
+const signedPostulacion = signature.signXml(postulacionXml);
+const signedCustom = signature.signXml(anyXmlDocument);
+
+// Or explicitly specify the root element name if needed
+const signedWithExplicitRoot = signature.signXml(ecfXml, 'ECF');
 ```
 
 ### Send Electronic Document eFC
@@ -145,8 +163,8 @@ const xml = transformer.json2xml(JsonECF31Invoice);
 
 //Create the name convention RNCEmisor + eCF.xml
 const fileName = `${rnc}${noEcf}.xml`;
-//Add the signature to the XML targetting the main wrapper in this case `ECF` (credito fiscal) it can be | ECF | ARECF | ACECF | ANECF | RFCE
-const signedXml = signature.signXml(xml, 'ECF');
+//Add the signature to the XML (root element auto-detected)
+const signedXml = signature.signXml(xml);
 //SEND the document to the DGII
 const response = await ecf.sendElectronicDocument(signedXml, fileName); //Optional third parameter is buyerHost?:string to send the invoice to the buyer
 ```
