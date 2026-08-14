@@ -169,9 +169,20 @@ class ECF {
     }
   };
 
+  /**
+   * Gets the service directory entry for an RNC.
+   *
+   * The TesteCF environment returns an array with a single directory entry, while the
+   * production eCF environment returns the single object.
+   *
+   * @param rnc Customer RNC to look up
+   * @returns The environment-specific service directory response
+   */
   getCustomerDirectory = async (
     rnc: string
-  ): Promise<ServiceDirectoryResponse[] | undefined> => {
+  ): Promise<
+    ServiceDirectoryResponse[] | ServiceDirectoryResponse | undefined
+  > => {
     try {
       const response = await this._api.getCustomerDirectoryApi(rnc);
       return response;
