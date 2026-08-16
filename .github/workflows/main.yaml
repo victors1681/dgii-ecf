@@ -72,6 +72,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
 
+      # Trusted publishing (OIDC) requires npm >= 11.5.1, but Node 22 bundles npm 10.x.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: npm ci
 
@@ -85,10 +89,10 @@ jobs:
           npm pkg set version=$BETA_VERSION
           echo "Publishing beta version: $BETA_VERSION"
 
-      - name: Publish beta to npm (with provenance)
-        run: npm publish --tag beta --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Authenticates via OIDC using the npm trusted publisher configured for this
+      # repository/workflow — no NPM_TOKEN needed. Provenance is generated automatically.
+      - name: Publish beta to npm (trusted publishing)
+        run: npm publish --tag beta --access public
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
@@ -129,16 +133,20 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
 
+      # Trusted publishing (OIDC) requires npm >= 11.5.1, but Node 22 bundles npm 10.x.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build --if-present
 
-      - name: Publish to npm (with provenance)
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Authenticates via OIDC using the npm trusted publisher configured for this
+      # repository/workflow — no NPM_TOKEN needed. Provenance is generated automatically.
+      - name: Publish to npm (trusted publishing)
+        run: npm publish --access public
 
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v3
