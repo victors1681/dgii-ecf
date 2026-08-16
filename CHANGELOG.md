@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Consistent `getCustomerDirectory` response shape**: The DGII directory
+  service inconsistently returns either an array of directory entries or a
+  single entry object depending on the environment/record (observed in
+  production logs; discovered in
+  [PR #24](https://github.com/victors1681/dgii-ecf/pull/24)). `getCustomerDirectory`
+  and `getCustomerDirectoryApi` now normalize the response internally so they
+  **always** resolve to `ServiceDirectoryResponse[]` (or `undefined` when the
+  service returns no body). This keeps the public `ServiceDirectoryResponse[]`
+  contract backward compatible — a single-object response is wrapped in an
+  array — so consumers can iterate the result without branching on the shape.
+
+### Added
+
+- **Test coverage for directory normalization**: Added tests covering the
+  array response, the single-object response (normalized to an array), and an
+  empty-body response in `ECF.customerDirectory.test.ts`.
+
 ## [1.8.0] - 2026-04-17
 
 ### Added

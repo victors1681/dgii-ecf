@@ -389,6 +389,13 @@ class RestApi {
   /**
    * Return the URLs for the customer if the customer is authorize to receive and approve electronic eCF
    * for low environment it return the default DGII URL automatically
+   *
+   * The DGII directory service is inconsistent about the response shape: some
+   * environments/records return an array of directory entries while others return a
+   * single directory entry object (see PR #24). To keep the contract stable for every
+   * consumer, the response is normalized here so this method always resolves to an
+   * array (or `undefined` when the service returns no body).
+   *
    * @param rnc
    * @returns Promise ServiceDirectory array of URL
    */
@@ -405,7 +412,19 @@ class RestApi {
         params: { rnc },
       });
 
-      return response.data as ServiceDirectoryResponse[];
+      const data = response.data as
+        | ServiceDirectoryResponse[]
+        | ServiceDirectoryResponse
+        | undefined
+        | null;
+
+      if (data == null) {
+        return undefined;
+      }
+
+      // Normalize the inconsistent DGII response: wrap a single entry in an array so
+      // callers always receive ServiceDirectoryResponse[].
+      return Array.isArray(data) ? data : [data];
     } catch (err) {
       if (axios.isAxiosError(err)) {
         throw err.response?.data;

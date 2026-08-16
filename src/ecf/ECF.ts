@@ -169,6 +169,18 @@ class ECF {
     }
   };
 
+  /**
+   * Gets the service directory entries for an RNC.
+   *
+   * The DGII directory service is inconsistent about the response shape: some
+   * environments/records return an array of directory entries while others return a
+   * single entry object (see PR #24). This method always resolves to an array so
+   * consumers never have to branch on the response shape, preserving the existing
+   * `ServiceDirectoryResponse[]` contract.
+   *
+   * @param rnc Customer RNC to look up
+   * @returns The service directory entries, or `undefined` when the service returns no body
+   */
   getCustomerDirectory = async (
     rnc: string
   ): Promise<ServiceDirectoryResponse[] | undefined> => {
