@@ -206,7 +206,22 @@ Return the URL availables for the customers who can receive ECF online, for low 
 const ecf = new ECF(certs, ENVIRONMENT.DEV);
 const rnc = 'any rnc';
 const response = await ecf.getCustomerDirectory(rnc);
+// response is always ServiceDirectoryResponse[] (or undefined) regardless of environment
 ```
+
+> **Note — inconsistent DGII response shape.** The DGII directory service does
+> not always return the same JSON shape: for some records/environments it
+> responds with an **array** of directory entries, while for others it responds
+> with a **single entry object**. This was surfaced from production logs where
+> the same directory endpoint returned both shapes
+> (discovered in [PR #24](https://github.com/victors1681/dgii-ecf/pull/24)).
+>
+> To keep the contract stable for every consumer, `getCustomerDirectory` (and
+> the underlying `getCustomerDirectoryApi`) **normalizes the response internally**:
+> a single-object response is wrapped in an array, so the method **always**
+> resolves to `ServiceDirectoryResponse[]` (or `undefined` when the service
+> returns no body). Consumers can iterate the result directly without checking
+> whether the payload was an array or an object.
 
 ###### Summary Invoice (Factura de consumo < 250K)
 
