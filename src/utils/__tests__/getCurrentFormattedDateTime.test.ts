@@ -1,4 +1,7 @@
-import { getCurrentFormattedDateTime } from '../getCurrentFormattedDateTime';
+import {
+  getCurrentFormattedDate,
+  getCurrentFormattedDateTime,
+} from '../getCurrentFormattedDateTime';
 
 describe('getCurrentFormattedDateTime', () => {
   afterEach(() => {
@@ -27,5 +30,23 @@ describe('getCurrentFormattedDateTime', () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-08-18T02:30:45.000Z'));
 
     expect(getCurrentFormattedDateTime()).toBe('17-08-2026 22:30:45');
+  });
+});
+
+describe('getCurrentFormattedDate', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('formats the current date as DD-MM-YYYY', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-17T12:15:30.000Z'));
+
+    expect(getCurrentFormattedDate()).toBe('17-08-2026');
+  });
+
+  it('formats the date in GMT-4 when UTC is on the next day', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-08-18T02:30:45.000Z'));
+
+    expect(getCurrentFormattedDate()).toBe('17-08-2026');
   });
 });

@@ -1,3 +1,9 @@
+/**
+ * Returns the current date and time in the America/Santo_Domingo time zone
+ * (GMT-4), using a 24-hour clock.
+ *
+ * @returns The formatted date and time in `DD-MM-YYYY HH:mm:ss` format.
+ */
 export const getCurrentFormattedDateTime = () => {
   const timeZone = 'America/Santo_Domingo';
   const currentDate = new Date();
@@ -10,7 +16,7 @@ export const getCurrentFormattedDateTime = () => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
+    hour12: false, // 24 hours
   };
 
   const formatter = new Intl.DateTimeFormat('es-DO', options as any);
@@ -27,6 +33,11 @@ export const getCurrentFormattedDateTime = () => {
   return formattedDate;
 };
 
+/**
+ * Returns the current date in the America/Santo_Domingo time zone (GMT-4).
+ *
+ * @returns The formatted date in `DD-MM-YYYY` format.
+ */
 export const getCurrentFormattedDate = () => {
   const timeZone = 'America/Santo_Domingo';
   const currentDate = new Date();
@@ -39,7 +50,7 @@ export const getCurrentFormattedDate = () => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
+    hour12: false, // No effect on the returned date because time parts are omitted.
   };
 
   const formatter = new Intl.DateTimeFormat('es-DO', options as any);
