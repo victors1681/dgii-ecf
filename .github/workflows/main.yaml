@@ -27,16 +27,32 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # Pull requests opened from forks do not receive repository secrets, so
-      # CERTIFICATE_NAME is empty there and the certificate cannot be fetched.
-      # Skip the download instead of failing: the suites that need the
-      # certificate skip themselves (see src/test_cert/hasTestCertificate.ts),
-      # and everything else still runs.
+      # A pull request opened from a fork is the only run that legitimately has
+      # no repository secrets. Anywhere else an empty CERTIFICATE_NAME means a
+      # rotated, renamed, or deleted secret, and skipping the certificate suites
+      # there would let an untested build reach publish-production. Fail closed.
+      - name: Require certificate outside fork pull requests
+        if: >-
+          env.CERTIFICATE_NAME == '' &&
+          (github.event_name != 'pull_request' ||
+           github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          echo "::error::CERTIFICATE_NAME is empty on a run that should have repository secrets. Refusing to continue with the certificate-dependent suites skipped."
+          exit 1
+
+      # Reached only on a fork pull request: skip the download and let the
+      # certificate-dependent suites skip themselves (see
+      # src/test_cert/hasTestCertificate.ts) so the rest of the suite still runs.
+      - name: Report skipped certificate
+        if: env.CERTIFICATE_NAME == ''
+        run: echo "::notice::No certificate secret available (fork pull request). Certificate-dependent test suites will be skipped."
+
       - name: Copy certificate
         if: env.CERTIFICATE_NAME != ''
         run: |
           cd src/test_cert && 
-          curl --fail --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
+          curl --fail --connect-timeout 10 --max-time 60 \
+          --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
           --location https://raw.githubusercontent.com/victors1681/certificates/main/${{ secrets.CERTIFICATE_NAME }}
@@ -44,10 +60,6 @@ jobs:
       - name: List certificates
         if: env.CERTIFICATE_NAME != ''
         run: cd src/test_cert && ls
-
-      - name: Report skipped certificate
-        if: env.CERTIFICATE_NAME == ''
-        run: echo "::notice::No certificate secret available (fork pull request). Certificate-dependent test suites will be skipped."
 
       - name: Install dependencies
         run: npm ci
