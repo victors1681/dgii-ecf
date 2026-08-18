@@ -10,7 +10,7 @@ export const getCurrentFormattedDateTime = () => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: true,
+    hour12: false,
   };
 
   const formatter = new Intl.DateTimeFormat('es-DO', options as any);
@@ -39,7 +39,7 @@ export const getCurrentFormattedDate = () => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: true,
+    hour12: false,
   };
 
   const formatter = new Intl.DateTimeFormat('es-DO', options as any);
