@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-08-18
+
+### Fixed
+
+- **`getCurrentFormattedDateTime` now uses a 24-hour clock**: the formatter was
+  configured with `hour12: true` but the AM/PM part was discarded when the
+  timestamp was assembled, so afternoon times lost 12 hours (`13:05:06` was
+  emitted as `01:05:06`) and the local midnight band rendered as `12:xx`
+  instead of `00:xx`. `hour12: false` resolves to the `h23` hour cycle, giving
+  the `DD-MM-YYYY HH:mm:ss` shape DGII expects in every hour band, with the
+  `America/Santo_Domingo` (GMT-4) timezone unchanged. This affects
+  `FechaHoraAcuseRecibo` on the acknowledgement documents built by
+  `SenderReceiver`, which DGII can reject as an invalid timestamp
+  ([PR #27](https://github.com/victors1681/dgii-ecf/pull/27)).
+- **`getCurrentFormattedDate` clock option**: switched to `hour12: false` for
+  consistency. The returned value is unchanged, since only the date parts are
+  used.
+
+### Added
+
+- **Test coverage for the date/time helpers**: six tests covering morning and
+  afternoon hours, midnight as `00`, the GMT-4 conversion including date
+  rollover across UTC midnight, and the `DD-MM-YYYY` date-only output.
+
+### Changed
+
+- **CI tolerates pull requests from forks**: GitHub does not grant repository
+  secrets to a run from a forked head, so the DGII test certificate cannot be
+  downloaded there and `build-and-test` failed before installing dependencies.
+  The download is now skipped on fork pull requests and the suites that need
+  the certificate skip themselves, while every other run still requires the
+  certificate and fails closed — a missing secret can no longer let an
+  untested build reach `publish-production`
+  ([PR #28](https://github.com/victors1681/dgii-ecf/pull/28)).
+
+## [1.8.2] - 2026-08-18
+
+Released from `main` before the `getCurrentFormattedDateTime` fix was merged,
+so it carries no functional change over 1.8.1 and still contains the 12-hour
+clock bug described under 1.8.3. Use 1.8.3 or later.
+
 ## [1.8.1] - 2026-08-16
 
 ### Fixed
