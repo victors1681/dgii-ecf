@@ -1,19 +1,22 @@
-import P12Reader from '../../P12Reader';
 import CustomAuthentication from '../CustomAuthentication';
 import path from 'path';
 import fs from 'fs';
+import {
+  hasTestCertificate,
+  readTestCertificate,
+} from '../../test_cert/hasTestCertificate';
 
-describe('Custom Authentication', () => {
-  const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
+const describeWithCertificate = hasTestCertificate() ? describe : describe.skip;
 
-  const reader = new P12Reader(secret);
-  const certs = reader.getKeyFromFile(
-    path.resolve(
-      __dirname,
-      `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-    )
-  );
-  const customAuthentication = new CustomAuthentication(certs);
+describeWithCertificate('Custom Authentication', () => {
+  let customAuthentication: CustomAuthentication;
+
+  // Constructed in a hook rather than at `describe` scope: the constructor
+  // rejects empty key material, and Jest evaluates a `describe` body even when
+  // the suite is skipped. Hooks only run for suites that actually execute.
+  beforeAll(() => {
+    customAuthentication = new CustomAuthentication(readTestCertificate());
+  });
 
   it('Generate a random seed file ', () => {
     const seed = customAuthentication.generateSeed();

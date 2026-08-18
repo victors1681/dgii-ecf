@@ -27,16 +27,27 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      # Pull requests opened from forks do not receive repository secrets, so
+      # CERTIFICATE_NAME is empty there and the certificate cannot be fetched.
+      # Skip the download instead of failing: the suites that need the
+      # certificate skip themselves (see src/test_cert/hasTestCertificate.ts),
+      # and everything else still runs.
       - name: Copy certificate
+        if: env.CERTIFICATE_NAME != ''
         run: |
           cd src/test_cert && 
-          curl --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
+          curl --fail --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
           --location https://raw.githubusercontent.com/victors1681/certificates/main/${{ secrets.CERTIFICATE_NAME }}
 
       - name: List certificates
+        if: env.CERTIFICATE_NAME != ''
         run: cd src/test_cert && ls
+
+      - name: Report skipped certificate
+        if: env.CERTIFICATE_NAME == ''
+        run: echo "::notice::No certificate secret available (fork pull request). Certificate-dependent test suites will be skipped."
 
       - name: Install dependencies
         run: npm ci
@@ -48,13 +59,16 @@ jobs:
         run: npm test
 
       - name: Clean up certificates
-        run: rm -rf src/test_cert
+        if: always()
+        run: rm -f src/test_cert/*.p12
 
   # Publish beta version on PR
   publish-beta:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Skipped for fork pull requests: publishing needs OIDC and repository
+    # secrets, neither of which GitHub grants to a run from a forked head.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       id-token: write # Required for npm provenance

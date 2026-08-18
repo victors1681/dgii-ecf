@@ -1,5 +1,4 @@
 import path from 'path';
-import P12Reader from '../../P12Reader';
 import ECF from '../../ecf/ECF';
 import { ENVIRONMENT } from '../../networking';
 import Signature from '../../Signature/Signature';
@@ -8,19 +7,16 @@ import {
   genrateACECFXml,
   getCommercialApprovalData,
 } from '../commercialApproval';
+import {
+  hasTestCertificate,
+  readTestCertificate,
+} from '../../test_cert/hasTestCertificate';
 
-describe('Sending Commercial Approvall', () => {
+const describeWithCertificate = hasTestCertificate() ? describe : describe.skip;
+
+describeWithCertificate('Sending Commercial Approvall', () => {
   it('Sending commercial approval', async () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certificatePath = path.resolve(
-      __dirname,
-      `../../test_cert/${
-        process.env.CERTIFICATE_NAME || '<<<<< certificate not found>>>>>'
-      }`
-    );
-    const certs = reader.getKeyFromFile(certificatePath);
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;
