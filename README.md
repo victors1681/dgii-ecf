@@ -288,14 +288,52 @@ if (result.isValid) {
 const silentResult = validateXMLCertificate(xmlString, { silent: true });
 ```
 
-###### Get all the tracks IDs
+###### Get all the tracks IDs (Consulta de trackId e-CF)
 
-Return all the tracking associated with a NCF
+Web service responsible for returning the list of TrackIds of an electronic invoice
+number (e-NCF) received by DGII, through the issuer RNC, the e-NCF to look up and a
+token associated to a valid session. Several TrackIds come back when the same e-NCF
+was submitted more than once under the same RNC.
+
+The authenticated user must be delegated by the issuer, otherwise DGII replies that
+the RNC of the token is not authorized to consult the TrackId of this e-NCF.
 
 ```ts
 const ecf = new ECF(certs, ENVIRONMENT.DEV);
-const response = await ecf.trackStatuses(rnc, noEcf);
+await ecf.authenticate();
+
+const response = await ecf.trackStatuses(rncEmisor, noEcf);
+
+// [
+//   {
+//     trackId: '5f0a4e4f-1f4e-4b3a-8a9c-2f0b1c3d4e5f',
+//     estado: 'Aceptado',
+//     fechaRecepcion: '18-08-2026 09:15:03',
+//   },
+// ]
 ```
+
+| Parameter   | Required | Format                                             |
+| ----------- | -------- | -------------------------------------------------- |
+| `rncEmisor` | Yes      | RNC (9 digits) or Cédula (11 digits) of the issuer |
+| `encf`      | Yes      | 13 characters, e.g. `E310005000201`                |
+
+Both parameters are validated before the request is sent, so an empty or wrong length
+value rejects locally with the same message DGII returns.
+
+`estado` values:
+
+- **No encontrado**: the e-CF was not found in the records.
+- **Aceptado**: the e-CF is valid.
+- **Rechazado**: the receipt is void for tax purposes because it failed a validation.
+- **Aceptado Condicional**: the receipt failed a validation that did not warrant a
+  rejection, so the e-CF is still valid.
+- **En proceso**: the receipt has not been validated yet, wait a prudent amount of
+  time before consulting again. The estimated validation average is 200 ms.
+
+The response resolves to `SummaryTrackingStatusResponse[]`, or `undefined` when the
+service returns no body. A single `TrackingDetalle` object is normalized into an array
+so you never have to branch on the response shape.
 
 ###### Inquiry Status
 

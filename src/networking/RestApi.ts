@@ -57,6 +57,48 @@ export const isErrorResponse = <T>(
   return (response as AxiosError).status !== 200;
 };
 
+/** Accepted lengths for an RNC/Cédula used as `RncEmisor` on the DGII services. */
+const RNC_EMISOR_LENGTHS = [9, 11];
+/** An e-NCF is always 13 characters: `E` + 2 digit document type + 10 digit sequence. */
+const ENCF_LENGTH = 13;
+
+/**
+ * Validates the input of the "Consulta de TrackIds" service before hitting DGII.
+ *
+ * The service documents these validations server side, so the same messages are
+ * raised locally to fail fast instead of spending a round trip on a request DGII
+ * is going to reject anyway.
+ *
+ * @param rncEmisor RNC of the issuer that sent the e-CF
+ * @param encf electronic NCF to look up
+ * @returns the trimmed values ready to be sent as query parameters
+ */
+export const validateTrackIdConsultationParams = (
+  rncEmisor: string,
+  encf: string
+): { rncEmisor: string; encf: string } => {
+  const trimmedRncEmisor = (rncEmisor ?? '').trim();
+  const trimmedEncf = (encf ?? '').trim();
+
+  if (!trimmedRncEmisor) {
+    throw new Error('El campo RNC Emisor es requerido.');
+  }
+
+  if (!trimmedEncf) {
+    throw new Error('El campo ENCF es requerido.');
+  }
+
+  if (!RNC_EMISOR_LENGTHS.includes(trimmedRncEmisor.length)) {
+    throw new Error('La longitud del RNC Emisor es inválida.');
+  }
+
+  if (trimmedEncf.length !== ENCF_LENGTH) {
+    throw new Error('La longitud del ENCF es inválida.');
+  }
+
+  return { rncEmisor: trimmedRncEmisor, encf: trimmedEncf };
+};
+
 class RestApi {
   private env: ENVIRONMENT = ENVIRONMENT.DEV;
 
@@ -361,23 +403,48 @@ class RestApi {
   };
 
   /**
-   * Return all the tracking associated with a NCF
-   * @param rncEmisor Receiver RNC
-   * @param encf electronic NCF
-   * @returns
+   * Consulta de trackId e-CF
+   *
+   * Returns every TrackId DGII generated for a given e-NCF of an issuer. More than
+   * one TrackId comes back when the same e-NCF was submitted several times under the
+   * same RNC, ordered as DGII returns them.
+   *
+   * The authenticated token must be delegated by the issuer, otherwise DGII answers
+   * that the RNC of the token is not authorized to consult the TrackId of this e-NCF.
+   *
+   * Pre-certification: `https://ecf.dgii.gov.do/testecf/consultatrackids/api/trackids/consulta`
+   * Production: `https://ecf.dgii.gov.do/ecf/consultatrackids/api/trackids/consulta`
+   *
+   * @param rncEmisor RNC of the issuer that sent the e-CF (9 or 11 digits, required)
+   * @param encf electronic NCF to look up (13 characters, required)
+   * @returns the TrackIds with their `estado` and `fechaRecepcion`, or `undefined`
+   * when the service returns no body
    */
   getAllTrackingncfApi = async (
     rncEmisor: string,
     encf: string
   ): Promise<SummaryTrackingStatusResponse[] | undefined> => {
+    const params = validateTrackIdConsultationParams(rncEmisor, encf);
+
     try {
       const resource = this.getResource(ENDPOINTS.ALL_TACKING_ECF);
 
-      const response = await restClient.get(resource, {
-        params: { rncEmisor, encf },
-      });
+      const response = await restClient.get(resource, { params });
 
-      return response.data as SummaryTrackingStatusResponse[];
+      const data = response.data as
+        | SummaryTrackingStatusResponse[]
+        | SummaryTrackingStatusResponse
+        | undefined
+        | null;
+
+      if (data == null) {
+        return undefined;
+      }
+
+      // DGII documents a single `TrackingDetalle` object as the response shape even
+      // though the service returns a list when several e-CF share the e-NCF. Normalize
+      // it so callers always receive SummaryTrackingStatusResponse[].
+      return Array.isArray(data) ? data : [data];
     } catch (err) {
       if (axios.isAxiosError(err)) {
         throw err.response?.data;

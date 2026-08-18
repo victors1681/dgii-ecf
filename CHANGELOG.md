@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`trackStatuses` (Consulta de trackId e-CF) brought up to the published spec**:
+  the service was already implemented against
+  `{ambiente}/ConsultaTrackIds/api/TrackIds/Consulta`, so this is a hardening of the
+  existing method rather than a new endpoint.
+  - `rncEmisor` and `encf` are validated and trimmed before the request leaves the
+    process, raising the same messages DGII documents (`El campo RNC Emisor es
+requerido.`, `El campo ENCF es requerido.`, `La longitud del RNC Emisor es
+inválida.`, `La longitud del ENCF es inválida.`) instead of spending a round trip
+    on a request the service is going to reject. An issuer may be a 9 digit RNC or an
+    11 digit Cédula, and an e-NCF is always 13 characters.
+  - The response is normalized to `SummaryTrackingStatusResponse[]`. DGII documents a
+    single `TrackingDetalle` object even though the service returns a list when
+    several e-CF share the same e-NCF, mirroring the inconsistency already handled in
+    `getCustomerDirectory`. A body-less response resolves to `undefined`.
+  - `trackStatuses` now declares its return type explicitly and documents the
+    delegation requirement plus every `estado` the service can answer.
+
+### Added
+
+- **Networking types are exported from the package root**: `export * from './types'`
+  in `src/networking/index.ts` makes `SummaryTrackingStatusResponse`,
+  `TrackStatusEnum`, `TrackingStatusResponse` and the rest of the response contracts
+  importable from `dgii-ecf` instead of a deep path.
+- **Unit tests for the TrackIds consultation**: eleven mocked tests covering both
+  environments, the array and single-object shapes, the empty body, parameter
+  trimming, each validation message, an 11 digit issuer, and the propagation of the
+  "not delegated" error body.
+
 ## [1.8.3] - 2026-08-18
 
 ### Fixed

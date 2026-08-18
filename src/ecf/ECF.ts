@@ -9,6 +9,7 @@ import {
   InvoiceResponse,
   Opperation,
   ServiceDirectoryResponse,
+  SummaryTrackingStatusResponse,
   VoidNCFResponse,
 } from '../networking/types';
 class ECF {
@@ -154,13 +155,35 @@ class ECF {
     }
   };
   /**
-   * Get all tracking
-   * @param rncEmisor
-   * @param encf
-   * @returns
+   * Consulta de trackId e-CF
+   *
+   * Servicio web responsable de retornar un listado de respuestas (TrackIds) de un
+   * número de comprobante fiscal electrónico (e-NCF) que haya sido recibido por DGII,
+   * a través de la presentación del RNC Emisor, el e-NCF a consultar y un token
+   * asociado a una sesión válida.
+   *
+   * Se pueden obtener múltiples TrackIds cuando se remiten varios e-CF con el mismo
+   * número de comprobante fiscal (e-NCF) asociados al mismo RNC.
+   *
+   * Para poder realizar la consulta satisfactoriamente, se requiere que el usuario
+   * autenticado se encuentre delegado para el emisor, de lo contrario, no podrá
+   * obtener los datos.
+   *
+   * `estado` puede ser: `No encontrado`, `Aceptado`, `Rechazado`,
+   * `Aceptado Condicional` o `En proceso` (ver {@link TrackStatusEnum}). El promedio
+   * estimado de validación es de 200 ms, por lo que un `En proceso` amerita esperar
+   * un tiempo prudencial antes de volver a consultar.
+   *
+   * @param rncEmisor RNC del emisor que envió el e-CF (9 u 11 dígitos, requerido)
+   * @param encf e-NCF a consultar (13 caracteres, requerido)
+   * @returns los TrackIds con su `estado` y `fechaRecepcion`, o `undefined` cuando el
+   * servicio no retorna contenido
    */
 
-  trackStatuses = async (rncEmisor: string, encf: string) => {
+  trackStatuses = async (
+    rncEmisor: string,
+    encf: string
+  ): Promise<SummaryTrackingStatusResponse[] | undefined> => {
     try {
       const response = await this._api.getAllTrackingncfApi(rncEmisor, encf);
       return response;
