@@ -1,21 +1,18 @@
 import Signature from '../Signature';
 import fs from 'fs';
 import path from 'path';
-import P12Reader from '../../P12Reader';
 import { DOMParser } from '@xmldom/xmldom';
 import xpath from 'xpath';
+import {
+  hasTestCertificate,
+  readTestCertificate,
+} from '../../test_cert/hasTestCertificate';
 
-describe('Sign Arbitrary XML Documents', () => {
+const describeWithCertificate = hasTestCertificate() ? describe : describe.skip;
+
+describeWithCertificate('Sign Arbitrary XML Documents', () => {
   it('Should sign Postulacion XML document', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;
@@ -72,15 +69,7 @@ describe('Sign Arbitrary XML Documents', () => {
   });
 
   it('Should sign any custom XML root element', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;
@@ -117,15 +106,7 @@ describe('Sign Arbitrary XML Documents', () => {
   });
 
   it('Should auto-detect root element from Postulacion XML', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;
@@ -165,15 +146,7 @@ describe('Sign Arbitrary XML Documents', () => {
   });
 
   it('Should auto-detect root element from any custom XML', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;
@@ -209,15 +182,7 @@ describe('Sign Arbitrary XML Documents', () => {
   });
 
   it('Should throw error for invalid XML with no root element (auto-detect)', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;
@@ -233,15 +198,7 @@ describe('Sign Arbitrary XML Documents', () => {
   });
 
   it('Should throw error for XML with invalid structure (explicit root)', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;

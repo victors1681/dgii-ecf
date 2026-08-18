@@ -1,5 +1,4 @@
 import path from 'path';
-import P12Reader from '../../P12Reader';
 import ECF from '../ECF';
 import { ENVIRONMENT, restClient } from '../../networking';
 import Signature from '../../Signature/Signature';
@@ -10,27 +9,24 @@ import JsonECF31Invoice from './sample/ecf_json_data_31.json';
 import JsonECF32Summary from './sample/cf_json_data_32.json';
 import { generateRandomAlphaNumeric } from '../../utils/generateRandomAlphaNumeric';
 import { getCurrentFormattedDate } from '../../utils';
+import {
+  hasTestCertificate,
+  readTestCertificate,
+} from '../../test_cert/hasTestCertificate';
 const randomNum = () =>
   Math.floor(Math.random() * 100000)
     .toString()
     .padStart(5, '0');
 
-describe('Test Authentication flow', () => {
-  const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
+const describeWithCertificate = hasTestCertificate() ? describe : describe.skip;
+
+describeWithCertificate('Test Authentication flow', () => {
   let testTrackingNo = '';
 
   const rnc = process.env.RNC_EMISOR || ''; //Customer RNC
   const noEcf = `E3100050${randomNum()}`; //Sequence
 
-  const reader = new P12Reader(secret);
-  const certificatePath = path.resolve(
-    __dirname,
-    `../../test_cert/${
-      process.env.CERTIFICATE_NAME || '<<<<< certificate not found>>>>>'
-    }`
-  );
-  console.log('certificatePath');
-  const certs = reader.getKeyFromFile(certificatePath);
+  const certs = readTestCertificate();
 
   it('Testing authentication', async () => {
     if (!certs.key || !certs.cert) {
