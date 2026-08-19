@@ -8,7 +8,7 @@ import {
 import RestApi from '../RestApi';
 
 const DELEGATION_ERROR =
-  'El RNC 40247764232 del certificado no está delegado para realizar transaciones.';
+  'El RNC 00112233445 del certificado no está delegado para realizar transaciones.';
 
 describe('extractDgiiErrorMessage', () => {
   it('returns the body when DGII answers with a bare string', () => {
@@ -110,6 +110,17 @@ describe('toDgiiApiError', () => {
     expect(error).toBeInstanceOf(DgiiApiError);
     expect(error.message).toBe('e-NCF vencido');
     expect(error.mensajes).toEqual([{ valor: 'e-NCF vencido', codigo: 4 }]);
+  });
+
+  it('does not recurse forever on a cyclic payload', () => {
+    // Anything can be thrown at `toDgiiApiError`; a self-referencing payload
+    // used to recurse until the stack overflowed, hiding the real failure.
+    const cyclic: Record<string, unknown> = { errors: {} };
+    (cyclic.errors as Record<string, unknown>).self = cyclic;
+    cyclic.list = [cyclic];
+
+    expect(() => toDgiiApiError(cyclic)).not.toThrow();
+    expect(toDgiiApiError(cyclic).message).toBe('DGII request failed');
   });
 
   it('serializes the useful fields with JSON.stringify', () => {
@@ -217,17 +228,16 @@ describe('RestApi error propagation', () => {
   });
 
   it('surfaces transport errors with their axios code', async () => {
-    mock
-      .onGet('/TesteCF/consultaresultado/api/Consultas/Estado')
-      .networkError();
+    mock.onGet('/TesteCF/consultaresultado/api/Consultas/Estado').timeout();
 
-    expect.assertions(2);
+    expect.assertions(3);
     try {
       await api.statusTrackIdApi('track-id');
     } catch (err) {
       const error = err as DgiiApiError;
       expect(error).toBeInstanceOf(DgiiApiError);
       expect(error.status).toBeUndefined();
+      expect(error.code).toBe('ECONNABORTED');
     }
   });
 });

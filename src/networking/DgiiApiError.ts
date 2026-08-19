@@ -103,13 +103,19 @@ const MESSAGE_KEYS = [
  * Extract the human readable error DGII sent in the response body.
  *
  * The DGII services are inconsistent: an authentication failure comes back as
- * a bare string (`"El RNC 40247764232 del certificado no está delegado para
+ * a bare string (`"El RNC ... del certificado no está delegado para
  * realizar transaciones."`), other endpoints answer with `{ mensajes: [...] }`,
  * with an ASP.NET `ProblemDetails`/`ModelState` payload, or with an HTML error
  * page. Every one of those shapes is reduced to a single string here so the
  * caller never has to fall back to the generic axios message.
  */
-export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
+export const extractDgiiErrorMessage = (
+  data: unknown,
+  // `toDgiiApiError` accepts arbitrary thrown values, so a self-referencing
+  // payload would otherwise recurse until the stack overflows — losing the
+  // original failure, which is exactly what this module exists to prevent.
+  seen: WeakSet<object> = new WeakSet<object>()
+): string | undefined => {
   if (data === undefined || data === null) {
     return undefined;
   }
@@ -124,7 +130,7 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
     // type, so axios hands over the raw string instead of the parsed value.
     if (/^[[{"]/.test(trimmed)) {
       try {
-        return extractDgiiErrorMessage(JSON.parse(trimmed));
+        return extractDgiiErrorMessage(JSON.parse(trimmed), seen);
       } catch {
         // Not JSON after all, fall through and use the raw text.
       }
@@ -143,11 +149,11 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
   }
 
   if (Buffer.isBuffer(data)) {
-    return extractDgiiErrorMessage(data.toString('utf8'));
+    return extractDgiiErrorMessage(data.toString('utf8'), seen);
   }
 
   if (data instanceof Uint8Array) {
-    return extractDgiiErrorMessage(Buffer.from(data).toString('utf8'));
+    return extractDgiiErrorMessage(Buffer.from(data).toString('utf8'), seen);
   }
 
   if (data instanceof Error) {
@@ -155,13 +161,23 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
   }
 
   if (Array.isArray(data)) {
+    if (seen.has(data)) {
+      return undefined;
+    }
+    seen.add(data);
+
     const parts = data
-      .map((item) => extractDgiiErrorMessage(item))
+      .map((item) => extractDgiiErrorMessage(item, seen))
       .filter((item): item is string => !!item);
     return parts.length ? truncate(parts.join(' | ')) : undefined;
   }
 
   if (isPlainObject(data)) {
+    if (seen.has(data)) {
+      return undefined;
+    }
+    seen.add(data);
+
     const mensajes = readMensajes(data.mensajes ?? data.Mensajes);
     if (mensajes) {
       return truncate(mensajes.map((mensaje) => mensaje.valor).join(' | '));
@@ -174,7 +190,7 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
       }
       // ProblemDetails nests the validation errors under `errors`.
       if (key === 'error' && (isPlainObject(value) || Array.isArray(value))) {
-        const nested = extractDgiiErrorMessage(value);
+        const nested = extractDgiiErrorMessage(value, seen);
         if (nested) {
           return nested;
         }
@@ -186,7 +202,7 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
     if (isPlainObject(errors)) {
       const parts = Object.entries(errors)
         .map(([field, value]) => {
-          const nested = extractDgiiErrorMessage(value);
+          const nested = extractDgiiErrorMessage(value, seen);
           return nested ? `${field}: ${nested}` : undefined;
         })
         .filter((item): item is string => !!item);
@@ -194,7 +210,7 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
         return truncate(parts.join(' | '));
       }
     } else if (errors) {
-      const nested = extractDgiiErrorMessage(errors);
+      const nested = extractDgiiErrorMessage(errors, seen);
       if (nested) {
         return nested;
       }
@@ -206,7 +222,8 @@ export const extractDgiiErrorMessage = (data: unknown): string | undefined => {
         return truncate(serialized);
       }
     } catch {
-      // Circular payload, nothing useful to report.
+      // Circular or otherwise unserializable payload.
+      return undefined;
     }
   }
 

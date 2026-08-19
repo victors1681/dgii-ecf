@@ -14,9 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   DGII sent in the response body. The authentication flow was the worst
   offender: `getAuthTokenApi` rethrew `new Error(err.message)`, so a rejected
   certificate was reported as the opaque `Request failed with status code 400`
-  and the real explanation (`El RNC 40247764232 del certificado no está
-  delegado para realizar transaciones.`) — which DGII returns as a bare string
-  in the body — was dropped. The other endpoints threw `err.response?.data`
+  and the real explanation (`El RNC ... del certificado no está delegado para
+  realizar transaciones.`) — which DGII returns as a bare string in the body —
+  was dropped. The other endpoints threw `err.response?.data`
   raw, which became `undefined` whenever the request never reached DGII.
 
 ### Added
@@ -33,9 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bodies and HTML error pages — into a single readable message.
 - **`toDgiiApiError`**: converts anything thrown (axios errors, raw DGII
   payloads, plain errors) into a `DgiiApiError`, with an optional
-  `fallbackMessage` used when the body carries no description.
-- 21 tests covering the extraction shapes and the `RestApi` propagation,
-  including the `ValidarSemilla` 400 regression.
+  `fallbackMessage` used when the body carries no description. Cyclic payloads
+  are traversed once, so normalizing one cannot overflow the stack and hide the
+  original failure.
+- 22 tests covering the extraction shapes and the `RestApi` propagation,
+  including the `ValidarSemilla` 400 regression, a cyclic payload and the
+  `ECONNABORTED` transport code.
 
 ### Changed
 
