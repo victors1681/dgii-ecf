@@ -1,5 +1,6 @@
 import axios, { isAxiosError } from 'axios';
 import https from 'https';
+import { toDgiiApiError } from './DgiiApiError';
 
 export enum ENVIRONMENT {
   DEV = 'TesteCF',
@@ -35,10 +36,12 @@ restClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (isAxiosError(error) && error.response?.status === 401) {
-      throw {
-        status: 401,
-        message: 'ERROR 401: Unauthorized, please check your credentials',
-      };
+      // DGII sometimes explains why the credentials were rejected in the body;
+      // keep that description instead of replacing it with a generic message.
+      throw toDgiiApiError(error, {
+        fallbackMessage:
+          'ERROR 401: Unauthorized, please check your credentials',
+      });
     }
     throw error;
   }

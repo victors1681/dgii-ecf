@@ -1,7 +1,8 @@
 import { ENVIRONMENT } from '../networking';
 import { BaseUrl, restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import { toDgiiApiError } from './DgiiApiError';
 import string2fileStream from 'string-to-file-stream';
 
 import streamLength from 'stream-length';
@@ -96,10 +97,7 @@ class RestApi {
 
       return response.data;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
   /**
@@ -136,13 +134,7 @@ class RestApi {
 
       return response.data as AuthToken;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.message) {
-          throw new Error(err.message);
-        }
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -186,16 +178,15 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      console.error('Error sending sendElectronicDocument API:', err);
-      if (axios.isAxiosError(err)) {
-        console.error('API error response:', err.response?.data);
-        throw (
-          err.response?.data ||
-          new Error('API error without response data' + JSON.stringify(err))
-        );
-      }
-      console.error('Unknown error type:', err);
-      throw err;
+      const apiError = toDgiiApiError(err);
+      console.error('Error sending sendElectronicDocument API:', {
+        message: apiError.message,
+        status: apiError.status,
+        code: apiError.code,
+        resource: apiError.resource,
+        data: apiError.data,
+      });
+      throw apiError;
     }
   };
 
@@ -247,10 +238,7 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -291,15 +279,15 @@ class RestApi {
 
       return response.data as InvoiceSummaryResponse;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        console.error('API error response:', err.response?.data);
-        throw (
-          err.response?.data ||
-          new Error('Error sending summary API: ' + JSON.stringify(err))
-        );
-      }
-      console.error('Error sending summary API:', err);
-      throw err;
+      const apiError = toDgiiApiError(err);
+      console.error('Error sending summary API:', {
+        message: apiError.message,
+        status: apiError.status,
+        code: apiError.code,
+        resource: apiError.resource,
+        data: apiError.data,
+      });
+      throw apiError;
     }
   };
 
@@ -319,10 +307,7 @@ class RestApi {
 
       return response.data as TrackingStatusResponse;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
   /**
@@ -353,10 +338,7 @@ class RestApi {
 
       return response.data as InquiryStatusResponse;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -379,10 +361,7 @@ class RestApi {
 
       return response.data as SummaryTrackingStatusResponse[];
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -426,10 +405,7 @@ class RestApi {
       // callers always receive ServiceDirectoryResponse[].
       return Array.isArray(data) ? data : [data];
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -458,10 +434,7 @@ class RestApi {
 
       return response.data as InquiryInvoiceSummary;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -513,10 +486,7 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 }
