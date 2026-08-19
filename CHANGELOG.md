@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.5] - 2026-08-19
+
+### Fixed
+
+- **DGII errors keep the description the service actually returned**: every
+  `RestApi` call now fails with a `DgiiApiError` whose `message` is the text
+  DGII sent in the response body. The authentication flow was the worst
+  offender: `getAuthTokenApi` rethrew `new Error(err.message)`, so a rejected
+  certificate was reported as the opaque `Request failed with status code 400`
+  and the real explanation (`El RNC ... del certificado no está delegado para
+  realizar transaciones.`) — which DGII returns as a bare string in the body —
+  was dropped. The other endpoints threw `err.response?.data`
+  raw, which became `undefined` whenever the request never reached DGII.
+
+### Added
+
+- **`DgiiApiError`**: error type carrying `status`, `statusText`, `code`
+  (axios transport code), `resource`, `method`, `mensajes` and the raw `data`
+  returned by DGII. It defines `toJSON()` so consumers that persist the error
+  with `JSON.stringify` (tracking records, CloudWatch logs) get the whole
+  context instead of `{}`.
+- **`extractDgiiErrorMessage`**: normalizes every error body shape DGII uses —
+  a bare string, a JSON encoded string served as `text/plain`, `{ mensaje }` /
+  `{ message }` / `{ error }`, `{ mensajes: [{ valor, codigo }] }`, `mensajes`
+  as plain strings, ASP.NET `ProblemDetails`/ModelState payloads, buffered
+  bodies and HTML error pages — into a single readable message.
+- **`toDgiiApiError`**: converts anything thrown (axios errors, raw DGII
+  payloads, plain errors) into a `DgiiApiError`, with an optional
+  `fallbackMessage` used when the body carries no description. Cyclic payloads
+  are traversed once, so normalizing one cannot overflow the stack and hide the
+  original failure.
+- 22 tests covering the extraction shapes and the `RestApi` propagation,
+  including the `ValidarSemilla` 400 regression, a cyclic payload and the
+  `ECONNABORTED` transport code.
+
+### Changed
+
+- **Failed requests now reject with `DgiiApiError` instead of the raw response
+  body**. Consumers reading `error.message` get the DGII description; those
+  that inspected the thrown payload can read `error.data` (raw body) or
+  `error.mensajes`.
+- **The 401 interceptor keeps the DGII explanation** when the service provides
+  one, and only falls back to
+  `ERROR 401: Unauthorized, please check your credentials` when it does not.
+
 ## [1.8.3] - 2026-08-18
 
 ### Fixed
