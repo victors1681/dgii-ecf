@@ -112,6 +112,23 @@ describe('Test util function ', () => {
     expect(rfce.securityCode).toBe('m+tPLr');
   });
 
+  it('Convert ECF32 to RFCE with a single aditional tax', () => {
+    // A lone <ImpuestoAdicional> parses to an object, not an array
+    const ecf32Xml = fs.readFileSync(
+      path.resolve(__dirname, './sample/convertion/signedECF32-single-tax.xml'),
+      'utf8'
+    );
+    const rfceXml = fs.readFileSync(
+      path.resolve(__dirname, './sample/convertion/rfceSingleAditionalTax.xml'),
+      'utf8'
+    );
+
+    const rfce = convertECF32ToRFCE(ecf32Xml);
+
+    expect(rfce.xml).toBe(rfceXml);
+    expect(rfce.securityCode).toBe('m+tPLr');
+  });
+
   it('Verify valid  XML Signature', () => {
     const xmlSigned = fs.readFileSync(
       path.resolve(__dirname, './sample/130359334E310000008928.xml'),
