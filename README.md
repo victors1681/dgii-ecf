@@ -124,7 +124,25 @@ const seedXml = fs.readFileSync(
 
 //Sign the document
 const signature = new Signature(certs.key, certs.cert);
-const signedXml = signature.signXml(seedXml, 'SemillaModel');
+const signedXml = signature.signXml(seedXml);
+```
+
+#### Sign Arbitrary XML Documents
+
+The `Signature` class can sign **any XML document**, not just DGII electronic invoices. The root element is automatically detected, so you don't need to specify it:
+
+```ts
+import { Signature } from 'dgii-ecf';
+
+const signature = new Signature(certs.key, certs.cert);
+
+// Simplest usage - auto-detects root element (recommended)
+const signedECF = signature.signXml(ecfXml);
+const signedPostulacion = signature.signXml(postulacionXml);
+const signedCustom = signature.signXml(anyXmlDocument);
+
+// Or explicitly specify the root element name if needed
+const signedWithExplicitRoot = signature.signXml(ecfXml, 'ECF');
 ```
 
 ### Send Electronic Document eFC
@@ -145,8 +163,8 @@ const xml = transformer.json2xml(JsonECF31Invoice);
 
 //Create the name convention RNCEmisor + eCF.xml
 const fileName = `${rnc}${noEcf}.xml`;
-//Add the signature to the XML targetting the main wrapper in this case `ECF` (credito fiscal) it can be | ECF | ARECF | ACECF | ANECF | RFCE
-const signedXml = signature.signXml(xml, 'ECF');
+//Add the signature to the XML (root element auto-detected)
+const signedXml = signature.signXml(xml);
 //SEND the document to the DGII
 const response = await ecf.sendElectronicDocument(signedXml, fileName); //Optional third parameter is buyerHost?:string to send the invoice to the buyer
 ```
@@ -188,7 +206,22 @@ Return the URL availables for the customers who can receive ECF online, for low 
 const ecf = new ECF(certs, ENVIRONMENT.DEV);
 const rnc = 'any rnc';
 const response = await ecf.getCustomerDirectory(rnc);
+// response is always ServiceDirectoryResponse[] (or undefined) regardless of environment
 ```
+
+> **Note — inconsistent DGII response shape.** The DGII directory service does
+> not always return the same JSON shape: for some records/environments it
+> responds with an **array** of directory entries, while for others it responds
+> with a **single entry object**. This was surfaced from production logs where
+> the same directory endpoint returned both shapes
+> (discovered in [PR #24](https://github.com/victors1681/dgii-ecf/pull/24)).
+>
+> To keep the contract stable for every consumer, `getCustomerDirectory` (and
+> the underlying `getCustomerDirectoryApi`) **normalizes the response internally**:
+> a single-object response is wrapped in an array, so the method **always**
+> resolves to `ServiceDirectoryResponse[]` (or `undefined` when the service
+> returns no body). Consumers can iterate the result directly without checking
+> whether the payload was an array or an object.
 
 ###### Summary Invoice (Factura de consumo < 250K)
 

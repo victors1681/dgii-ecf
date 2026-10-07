@@ -5,8 +5,10 @@ export const transformeLowercasePayloadToCamelcase = (
   reference: any = ecfReference
 ): any => {
   if (Array.isArray(source)) {
-    return source.map((item, i) =>
-      transformeLowercasePayloadToCamelcase(item, reference?.[i])
+    // Use the first item in the reference array as the template for all items
+    const itemReference = Array.isArray(reference) ? reference[0] : reference;
+    return source.map((item) =>
+      transformeLowercasePayloadToCamelcase(item, itemReference)
     );
   } else if (
     source !== null &&
@@ -18,6 +20,17 @@ export const transformeLowercasePayloadToCamelcase = (
         Object.keys(reference).find(
           (refKey) => refKey.toLowerCase() === key.toLowerCase()
         ) || key;
+
+      // Log when no matching key is found in reference
+      if (
+        !Object.keys(reference).some(
+          (refKey) => refKey.toLowerCase() === key.toLowerCase()
+        )
+      ) {
+        console.warn(
+          `[transformeLowercasePayloadToCamelcase] No matching key found in reference for: "${key}". Using original key.`
+        );
+      }
 
       acc[matchedKey] = transformeLowercasePayloadToCamelcase(
         source[key],

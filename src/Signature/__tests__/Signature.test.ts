@@ -1,21 +1,18 @@
 import Signature from '../Signature';
 import fs from 'fs';
 import path from 'path';
-import P12Reader from '../../P12Reader';
 import { DOMParser } from '@xmldom/xmldom';
 import xpath from 'xpath';
+import {
+  hasTestCertificate,
+  readTestCertificate,
+} from '../../test_cert/hasTestCertificate';
 
-describe('Sign Documents', () => {
+const describeWithCertificate = hasTestCertificate() ? describe : describe.skip;
+
+describeWithCertificate('Sign Documents', () => {
   it('Sign Seed', () => {
-    const secret = process.env.CERTIFICATE_TEST_PASSWORD || '';
-
-    const reader = new P12Reader(secret);
-    const certs = reader.getKeyFromFile(
-      path.resolve(
-        __dirname,
-        `../../test_cert/${process.env.CERTIFICATE_NAME || ''}`
-      )
-    );
+    const certs = readTestCertificate();
 
     if (!certs.key || !certs.cert) {
       return;

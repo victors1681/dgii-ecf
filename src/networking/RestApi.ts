@@ -1,7 +1,8 @@
 import { ENVIRONMENT } from '../networking';
 import { BaseUrl, restClient, setAuthToken } from './restClient';
 import FormData from 'form-data';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import { toDgiiApiError } from './DgiiApiError';
 import string2fileStream from 'string-to-file-stream';
 
 import streamLength from 'stream-length';
@@ -30,8 +31,9 @@ export enum ENDPOINTS {
   TRACK_RESULT_STATUS = 'consultaresultado/api/Consultas/Estado',
   INQUIRY_STATUS = 'consultaestado/api/Consultas/Estado', //https://ecf.dgii.gov.do/testecf/consultaestado/help/index.html
   ALL_TACKING_ECF = 'ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
-  DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
-  DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
+  // DGII retired the bulk `listado` query in Sep 2026; only the per-RNC
+  // lookup remains, in every environment.
+  DIRECTORY = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
   VOID = 'anulacionrangos/api/operaciones/anularrango',
   SERVICE_STATUS = 'api/estatusservicios/obtenerestatus', //Require API KEY
   SERVICE_MAINTENANCE = 'api/estatusservicios/obtenerventanasmantenimiento', //Require API KEY
@@ -96,10 +98,7 @@ class RestApi {
 
       return response.data;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
   /**
@@ -136,13 +135,7 @@ class RestApi {
 
       return response.data as AuthToken;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.message) {
-          throw new Error(err.message);
-        }
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -186,16 +179,15 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      console.error('Error sending sendElectronicDocument API:', err);
-      if (axios.isAxiosError(err)) {
-        console.error('API error response:', err.response?.data);
-        throw (
-          err.response?.data ||
-          new Error('API error without response data' + JSON.stringify(err))
-        );
-      }
-      console.error('Unknown error type:', err);
-      throw err;
+      const apiError = toDgiiApiError(err);
+      console.error('Error sending sendElectronicDocument API:', {
+        message: apiError.message,
+        status: apiError.status,
+        code: apiError.code,
+        resource: apiError.resource,
+        data: apiError.data,
+      });
+      throw apiError;
     }
   };
 
@@ -247,10 +239,7 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -291,16 +280,15 @@ class RestApi {
 
       return response.data as InvoiceSummaryResponse;
     } catch (err) {
-      console.error('Error sending summary API:', err);
-      if (axios.isAxiosError(err)) {
-        console.error('API error response:', err.response?.data);
-        throw (
-          err.response?.data ||
-          new Error('API error without response data' + JSON.stringify(err))
-        );
-      }
-      console.error('Unknown error type:', err);
-      throw err;
+      const apiError = toDgiiApiError(err);
+      console.error('Error sending summary API:', {
+        message: apiError.message,
+        status: apiError.status,
+        code: apiError.code,
+        resource: apiError.resource,
+        data: apiError.data,
+      });
+      throw apiError;
     }
   };
 
@@ -320,10 +308,7 @@ class RestApi {
 
       return response.data as TrackingStatusResponse;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
   /**
@@ -354,10 +339,7 @@ class RestApi {
 
       return response.data as InquiryStatusResponse;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -380,16 +362,19 @@ class RestApi {
 
       return response.data as SummaryTrackingStatusResponse[];
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
   /**
    * Return the URLs for the customer if the customer is authorize to receive and approve electronic eCF
-   * for low environment it return the default DGII URL automatically
+   *
+   * The DGII directory service is inconsistent about the response shape: some
+   * environments/records return an array of directory entries while others return a
+   * single directory entry object (see PR #24). To keep the contract stable for every
+   * consumer, the response is normalized here so this method always resolves to an
+   * array (or `undefined` when the service returns no body).
+   *
    * @param rnc
    * @returns Promise ServiceDirectory array of URL
    */
@@ -397,21 +382,27 @@ class RestApi {
     rnc: string
   ): Promise<ServiceDirectoryResponse[] | undefined> => {
     try {
-      const resource =
-        this.env === ENVIRONMENT.PROD
-          ? this.getResource(ENDPOINTS.DIRECTORY_PROD)
-          : this.getResource(ENDPOINTS.DIRECTORY_TEST_CERT);
+      const resource = this.getResource(ENDPOINTS.DIRECTORY);
 
       const response = await restClient.get(resource, {
         params: { rnc },
       });
 
-      return response.data as ServiceDirectoryResponse[];
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
+      const data = response.data as
+        | ServiceDirectoryResponse[]
+        | ServiceDirectoryResponse
+        | undefined
+        | null;
+
+      if (data == null) {
+        return undefined;
       }
-      throw err;
+
+      // Normalize the inconsistent DGII response: wrap a single entry in an array so
+      // callers always receive ServiceDirectoryResponse[].
+      return Array.isArray(data) ? data : [data];
+    } catch (err) {
+      throw toDgiiApiError(err);
     }
   };
 
@@ -440,10 +431,7 @@ class RestApi {
 
       return response.data as InquiryInvoiceSummary;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 
@@ -495,10 +483,7 @@ class RestApi {
 
       return response.data as T;
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        throw err.response?.data;
-      }
-      throw err;
+      throw toDgiiApiError(err);
     }
   };
 }

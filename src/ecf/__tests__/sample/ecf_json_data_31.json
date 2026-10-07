@@ -5,7 +5,7 @@
 			"IdDoc": {
 				"TipoeCF": "31",
 				"eNCF": "E310005000099",
-				"FechaVencimientoSecuencia": "31-12-2025",
+				"FechaVencimientoSecuencia": "31-12-2028",
 				"IndicadorEnvioDiferido": "1",
 				"IndicadorMontoGravado": "0",
 				"TipoIngresos": "05",
@@ -20,8 +20,8 @@
 				"FechaEmision": "14-07-2023"
 			},
 			"Comprador": {
-				"RNCComprador": "131880738",
-				"RazonSocialComprador": "DGII"
+				"RNCComprador": "401506254",
+				"RazonSocialComprador": "DIRECCION GENERAL DE IMPUESTOS INTERNOS"
 			},
 			"Totales": {
 				"MontoGravadoTotal": 540.0,

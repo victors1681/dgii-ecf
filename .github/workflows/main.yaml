@@ -1,40 +1,192 @@
-name: Node.js CI
+name: Node.js CI/CD
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 env:
   CERTIFICATE_TEST_PASSWORD: ${{ secrets.CERTIFICATE_TEST_PASSWORD }}
   CERTIFICATE_NAME: ${{ secrets.CERTIFICATE_NAME }}
   RNC_EMISOR: ${{ secrets.RNC_EMISOR }}
-jobs:
-  build:
-    runs-on: ubuntu-latest
 
+jobs:
+  # Build and test job - runs on all PRs and pushes
+  build-and-test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [22.x]
 
     steps:
       - uses: actions/checkout@v3
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: copy certificate
+
+      # A pull request opened from a fork is the only run that legitimately has
+      # no repository secrets. Anywhere else an empty CERTIFICATE_NAME means a
+      # rotated, renamed, or deleted secret, and skipping the certificate suites
+      # there would let an untested build reach publish-production. Fail closed.
+      - name: Require certificate outside fork pull requests
+        if: >-
+          env.CERTIFICATE_NAME == '' &&
+          (github.event_name != 'pull_request' ||
+           github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          echo "::error::CERTIFICATE_NAME is empty on a run that should have repository secrets. Refusing to continue with the certificate-dependent suites skipped."
+          exit 1
+
+      # Reached only on a fork pull request: skip the download and let the
+      # certificate-dependent suites skip themselves (see
+      # src/test_cert/hasTestCertificate.ts) so the rest of the suite still runs.
+      - name: Report skipped certificate
+        if: env.CERTIFICATE_NAME == ''
+        run: echo "::notice::No certificate secret available (fork pull request). Certificate-dependent test suites will be skipped."
+
+      - name: Copy certificate
+        if: env.CERTIFICATE_NAME != ''
         run: |
           cd src/test_cert && 
-          curl --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
+          curl --fail --connect-timeout 10 --max-time 60 \
+          --header 'Authorization: token ${{ secrets.CERTIFICATE_ACCESS_TOKEN }}' \
           --header 'Accept: application/vnd.github.v3.raw' \
           --remote-name \
           --location https://raw.githubusercontent.com/victors1681/certificates/main/${{ secrets.CERTIFICATE_NAME }}
-      - run: cd src/test_cert && ls
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
-      - run: rm -rf src/test_cert
-      - uses: JS-DevTools/npm-publish@v1
+
+      - name: List certificates
+        if: env.CERTIFICATE_NAME != ''
+        run: cd src/test_cert && ls
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test
+
+      - name: Clean up certificates
+        if: always()
+        run: rm -f src/test_cert/*.p12
+
+  # Publish beta version on PR
+  publish-beta:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # Skipped for fork pull requests: publishing needs OIDC and repository
+    # secrets, neither of which GitHub grants to a run from a forked head.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
+      packages: write # Required to publish to GitHub Packages
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
-          token: ${{ secrets.NPM_TOKEN }}
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1, but Node 22 bundles npm 10.x.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Set beta version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          BETA_VERSION="${CURRENT_VERSION}-beta.${GITHUB_RUN_NUMBER}"
+          npm pkg set version=$BETA_VERSION
+          echo "Publishing beta version: $BETA_VERSION"
+
+      # Authenticates via OIDC using the npm trusted publisher configured for this
+      # repository/workflow — no NPM_TOKEN needed. Provenance is generated automatically.
+      - name: Publish beta to npm (trusted publishing)
+        run: npm publish --tag beta --access public
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@victors1681"
+
+      - name: Update package name for GitHub Packages
+        run: |
+          npm pkg set name="@victors1681/dgii-ecf"
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+
+      - name: Publish beta to GitHub Packages
+        run: npm publish --tag beta --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish production version only on merge to main
+  publish-production:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      id-token: write # Required for npm provenance
+      packages: write # Required to publish to GitHub Packages
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1, but Node 22 bundles npm 10.x.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      # Authenticates via OIDC using the npm trusted publisher configured for this
+      # repository/workflow — no NPM_TOKEN needed. Provenance is generated automatically.
+      - name: Publish to npm (trusted publishing)
+        run: npm publish --access public
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@victors1681"
+
+      - name: Update package name for GitHub Packages
+        run: |
+          npm pkg set name="@victors1681/dgii-ecf"
+          npm pkg set publishConfig.registry="https://npm.pkg.github.com"
+
+      - name: Publish to GitHub Packages
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

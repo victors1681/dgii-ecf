@@ -49,12 +49,13 @@ export const validateXMLCertificate = (
     };
   }
 };
+
 function validateXmlCertificate(
   xml: string,
   options: ValidateXMLOptions = {}
 ): ValidationResponse {
   try {
-    const doc = new DOMParser().parseFromString(xml);
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
     const signatureNode = xpath.select(
       "//*[local-name(.)='Signature']",
       doc
@@ -64,42 +65,18 @@ function validateXmlCertificate(
       throw new Error('Signature not found in XML.');
     }
 
-    const sig = new SignedXml();
-    sig.keyInfoProvider = {
-      file: '',
-      getKeyInfo: () => '<X509Data></X509Data>',
-      getKey(keyInfo: Node) {
-        if (!keyInfo) {
-          throw new Error('KeyInfo is undefined.');
-        }
-        const certificateNode = xpath.select(
-          "string(//*[local-name(.)='X509Certificate'])",
+    // xml-crypto v6 defaults `getCertFromKeyInfo` to a no-op — pass the
+    // built-in static explicitly so the signing cert is read from the
+    // embedded <X509Certificate> in KeyInfo.
+    const sig = new SignedXml({
+      getCertFromKeyInfo: SignedXml.getCertFromKeyInfo,
+    });
 
-          (keyInfo as unknown as Node[])[0]
-        );
-
-        const certificateString = certificateNode.toString();
-
-        if (typeof certificateString !== 'string' || !certificateString) {
-          throw new Error('Invalid certificate content');
-        }
-
-        const cleanCert = certificateString.replace(/[\n\r\s]/g, '');
-        if (!cleanCert.match(/^[A-Za-z0-9+/=]+$/)) {
-          throw new Error('Invalid base64 certificate');
-        }
-        const pemCert = `-----BEGIN CERTIFICATE-----\n${cleanCert}\n-----END CERTIFICATE-----`;
-        return Buffer.from(pemCert);
-      },
-    };
-
-    sig.loadSignature(signatureNode.toString());
+    sig.loadSignature(signatureNode as Node);
     const isValid = sig.checkSignature(xml);
 
     if (!isValid) {
-      throw new Error(
-        `Signature validation failed: ${sig.validationErrors.join(', ')}`
-      );
+      throw new Error('Signature validation failed');
     }
 
     const certificateNode = xpath.select(
