@@ -26,7 +26,7 @@ export enum ENDPOINTS {
   VALIDATE_SEED = 'autenticacion/api/Autenticacion/ValidarSemilla',
   SEND_INVOICE = 'recepcion/api/FacturasElectronicas',
   SEND_SUMMARY = 'recepcionfc/api/recepcion/ecf', //use with the https:fc.dgii... domain
-  INQUIRY_INVOICE_SUMMARY = '/consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
+  INQUIRY_INVOICE_SUMMARY = 'consultarfce/api/Consultas/Consulta', //Only works on PROD environment https://fc.dgii.gov.do/ecf/consultarfce/help/index.html
   COMMERCIAL_APPROVAL = 'aprobacionComercial/api/AprobacionComercial', //https://ecf.dgii.gov.do/testecf/aprobacioncomercial/help/index.html
   TRACK_RESULT_STATUS = 'consultaresultado/api/Consultas/Estado',
   INQUIRY_STATUS = 'consultaestado/api/Consultas/Estado', //https://ecf.dgii.gov.do/testecf/consultaestado/help/index.html
