@@ -139,6 +139,19 @@ describe('toDgiiApiError', () => {
       data: DELEGATION_ERROR,
     });
   });
+
+  it('keeps the cyclic axios cause out of its own enumerable properties', () => {
+    // Jest copies a failing test's error between workers; an enumerable cause
+    // with axios' cyclic request crashed the worker and hid the DGII message.
+    const request: Record<string, unknown> = {};
+    request._redirectable = { _currentRequest: request };
+    const cause = { request };
+    const error = new DgiiApiError(DELEGATION_ERROR, { status: 400, cause });
+
+    expect((error as Error & { cause?: unknown }).cause).toBe(cause);
+    expect(Object.keys(error)).not.toContain('cause');
+    expect(() => JSON.stringify({ ...error })).not.toThrow();
+  });
 });
 
 describe('RestApi error propagation', () => {
