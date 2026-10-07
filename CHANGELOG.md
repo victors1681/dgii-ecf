@@ -26,6 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on it; Jest crashed with `Converting circular structure to JSON` whenever a
   DGII call failed in a test, hiding the real DGII message. `cause` stays
   readable as before.
+- **`getCustomerDirectory` uses the per-RNC lookup in every environment**:
+  DGII retired the bulk `consultadirectorio/.../listado` query (announced
+  2026-09-08, production 2026-09-22), which test and certification still
+  called; it now answers with a malformed response that axios rejects
+  (`Parse Error: Expected HTTP/`). All environments now call
+  `obtenerdirectorioporrnc`, so the RNC passed in must be a registered one.
 
 ## [1.8.5] - 2026-08-19
 

@@ -31,8 +31,9 @@ export enum ENDPOINTS {
   TRACK_RESULT_STATUS = 'consultaresultado/api/Consultas/Estado',
   INQUIRY_STATUS = 'consultaestado/api/Consultas/Estado', //https://ecf.dgii.gov.do/testecf/consultaestado/help/index.html
   ALL_TACKING_ECF = 'ConsultaTrackIds/api/TrackIds/Consulta', //https://ecf.dgii.gov.do/testecf/consultatrackids/help/index.html
-  DIRECTORY_PROD = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
-  DIRECTORY_TEST_CERT = 'consultadirectorio/api/consultas/listado',
+  // DGII retired the bulk `listado` query in Sep 2026; only the per-RNC
+  // lookup remains, in every environment.
+  DIRECTORY = 'consultadirectorio/api/consultas/obtenerdirectorioporrnc',
   VOID = 'anulacionrangos/api/operaciones/anularrango',
   SERVICE_STATUS = 'api/estatusservicios/obtenerestatus', //Require API KEY
   SERVICE_MAINTENANCE = 'api/estatusservicios/obtenerventanasmantenimiento', //Require API KEY
@@ -367,7 +368,6 @@ class RestApi {
 
   /**
    * Return the URLs for the customer if the customer is authorize to receive and approve electronic eCF
-   * for low environment it return the default DGII URL automatically
    *
    * The DGII directory service is inconsistent about the response shape: some
    * environments/records return an array of directory entries while others return a
@@ -382,10 +382,7 @@ class RestApi {
     rnc: string
   ): Promise<ServiceDirectoryResponse[] | undefined> => {
     try {
-      const resource =
-        this.env === ENVIRONMENT.PROD
-          ? this.getResource(ENDPOINTS.DIRECTORY_PROD)
-          : this.getResource(ENDPOINTS.DIRECTORY_TEST_CERT);
+      const resource = this.getResource(ENDPOINTS.DIRECTORY);
 
       const response = await restClient.get(resource, {
         params: { rnc },

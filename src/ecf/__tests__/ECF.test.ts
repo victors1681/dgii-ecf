@@ -121,19 +121,17 @@ describeWithCertificate('Test Authentication flow', () => {
     }
   });
 
-  it('Test get all tracking id status', async () => {
+  it('Test customer directory lookup by RNC', async () => {
+    // DGII retired the bulk `listado` query, which returned its own entry for
+    // any input; the per-RNC lookup needs a registered RNC (DGII's own).
     const ecf = new ECF(certs, ENVIRONMENT.DEV);
-    const rnc = 'any rnc';
-    const response = await ecf.getCustomerDirectory(rnc);
-    expect(response).toMatchObject([
-      {
-        nombre: 'DGII',
-        rnc: '131880681',
-        urlAceptacion: 'https://ecf.dgii.gov.do/testecf/emisorreceptor',
-        urlOpcional: 'https://ecf.dgii.gov.do/Testecf/autenticacion',
-        urlRecepcion: 'https://ecf.dgii.gov.do/testecf/emisorreceptor',
-      },
-    ]);
+    const dgiiRnc = '131880681';
+    const response = await ecf.getCustomerDirectory(dgiiRnc);
+    expect(response?.[0]).toMatchObject({
+      rnc: dgiiRnc,
+      urlRecepcion: expect.any(String),
+      urlAceptacion: expect.any(String),
+    });
   });
 
   it('Testing sending signed summary (32) to DGII', async () => {
