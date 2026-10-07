@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   amounts produced empty `<MontoImpuestoSelectivoConsumoEspecifico>` and
   `<MontoImpuestoSelectivoConsumoAdvalorem>` tags. The DGII RFCE format only
   allows these fields when the tax applies, with a positive value.
+- **`DgiiApiError.cause` is non-enumerable**: it holds the raw axios error,
+  whose request is cyclic. Code that copies an error's own properties choked
+  on it; Jest crashed with `Converting circular structure to JSON` whenever a
+  DGII call failed in a test, hiding the real DGII message. `cause` stays
+  readable as before.
 
 ## [1.8.5] - 2026-08-19
 
