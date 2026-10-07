@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-10-07
+
+### Fixed
+
+- **`getSummaryInvoiceInquiry` requests a valid URL**: `INQUIRY_INVOICE_SUMMARY`
+  started with a slash, so `getResource` built
+  `/eCF//consultarfce/api/Consultas/Consulta`, which `fc.dgii.gov.do` answers
+  with a malformed response. The leading slash is removed, like every other
+  endpoint (#32, #33, thanks @psyk4e).
+
 ## [1.9.0] - 2026-10-07
 
 ### Changed
