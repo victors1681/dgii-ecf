@@ -22,6 +22,11 @@ export function convertECF32ToRFCE(rcf32Xml: string): {
     throw new Error('Unable to get the first 6 digits of the SignatureValue');
   }
 
+  // xml2Json turns a lone <ImpuestoAdicional> into an object, not an array
+  const impuestosAdicionales = toArray(
+    rcf32.ECF.Encabezado?.Totales?.ImpuestosAdicionales?.ImpuestoAdicional
+  );
+
   // Create RFCE structure
   const rfce = removeEmptyValues({
     RFCE: {
@@ -59,18 +64,16 @@ export function convertECF32ToRFCE(rcf32Xml: string): {
           MontoImpuestoAdicional:
             rcf32.ECF.Encabezado?.Totales?.MontoImpuestoAdicional,
           ImpuestosAdicionales: {
-            ImpuestoAdicional:
-              rcf32.ECF.Encabezado?.Totales?.ImpuestosAdicionales?.ImpuestoAdicional?.map(
-                (impuesto: ImpuestoAdicional) => ({
-                  TipoImpuesto: impuesto?.TipoImpuesto,
-                  MontoImpuestoSelectivoConsumoEspecifico:
-                    impuesto?.MontoImpuestoSelectivoConsumoEspecifico,
-                  MontoImpuestoSelectivoConsumoAdvalorem:
-                    impuesto?.MontoImpuestoSelectivoConsumoAdvalorem,
-                  OtrosImpuestosAdicionales:
-                    impuesto?.OtrosImpuestosAdicionales,
-                })
-              ),
+            ImpuestoAdicional: impuestosAdicionales.map(
+              (impuesto: ImpuestoAdicional) => ({
+                TipoImpuesto: impuesto?.TipoImpuesto,
+                MontoImpuestoSelectivoConsumoEspecifico:
+                  impuesto?.MontoImpuestoSelectivoConsumoEspecifico,
+                MontoImpuestoSelectivoConsumoAdvalorem:
+                  impuesto?.MontoImpuestoSelectivoConsumoAdvalorem,
+                OtrosImpuestosAdicionales: impuesto?.OtrosImpuestosAdicionales,
+              })
+            ),
           },
           MontoTotal: rcf32.ECF.Encabezado?.Totales?.MontoTotal,
           MontoNoFacturable: rcf32.ECF.Encabezado?.Totales?.MontoNoFacturable,
@@ -84,6 +87,13 @@ export function convertECF32ToRFCE(rcf32Xml: string): {
   return { xml: transform.json2xml(rfce), securityCode: CodigoSeguridadeCF };
 }
 
+const toArray = <T>(value: T | T[] | undefined | null): T[] => {
+  if (value === undefined || value === null) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
+};
+
 const removeEmptyValues = (obj: any): any => {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     if (value === null || value === undefined || value === '') {
@@ -91,9 +101,20 @@ const removeEmptyValues = (obj: any): any => {
     }
 
     if (Array.isArray(value)) {
-      const filtered = value.filter(
-        (item) => item !== null && item !== undefined && item !== ''
-      );
+      // Clean object items too, so absent fields don't become empty tags
+      const filtered = value
+        .map((item) =>
+          item !== null && typeof item === 'object'
+            ? removeEmptyValues(item)
+            : item
+        )
+        .filter(
+          (item) =>
+            item !== null &&
+            item !== undefined &&
+            item !== '' &&
+            !(typeof item === 'object' && Object.keys(item).length === 0)
+        );
       if (filtered.length > 0) {
         acc[key] = filtered;
       }

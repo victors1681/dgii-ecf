@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.6] - 2026-10-07
+
+### Fixed
+
+- **`convertECF32ToRFCE` handles an e-CF 32 with a single additional tax**:
+  `xml2Json` parses a lone `<ImpuestoAdicional>` into an object rather than an
+  array, so the conversion threw `...ImpuestoAdicional.map is not a function`
+  for any invoice carrying exactly one additional tax, such as the 10% legal
+  tip (`TipoImpuesto 001`). The value is now normalized to an array.
+- **No empty tags in RFCE `ImpuestoAdicional` entries**: `removeEmptyValues`
+  cleaned arrays but not the objects inside them, so a tax without ISC
+  amounts produced empty `<MontoImpuestoSelectivoConsumoEspecifico>` and
+  `<MontoImpuestoSelectivoConsumoAdvalorem>` tags. The DGII RFCE format only
+  allows these fields when the tax applies, with a positive value.
+
 ## [1.8.5] - 2026-08-19
 
 ### Fixed
