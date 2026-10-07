@@ -25,10 +25,14 @@ describe('ECF.getCustomerDirectory', () => {
   });
 
   it('returns the array as-is when the service responds with an array', async () => {
+    // DGII retired the bulk `listado` query, so DEV uses the per-RNC lookup too
     mock
-      .onGet('/TesteCF/consultadirectorio/api/consultas/listado', {
-        params: { rnc },
-      })
+      .onGet(
+        '/TesteCF/consultadirectorio/api/consultas/obtenerdirectorioporrnc',
+        {
+          params: { rnc },
+        }
+      )
       .reply(200, [directoryEntry]);
 
     const ecf = new ECF(credentials, ENVIRONMENT.DEV);

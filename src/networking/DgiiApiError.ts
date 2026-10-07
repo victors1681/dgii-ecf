@@ -273,8 +273,16 @@ export class DgiiApiError extends Error {
     this.mensajes = options.mensajes;
 
     if (options.cause !== undefined) {
-      // `cause` is not part of the ES2020 lib this package targets.
-      (this as unknown as { cause?: unknown }).cause = options.cause;
+      // `cause` is not part of the ES2020 lib this package targets. It holds
+      // the raw axios error, whose request is cyclic, so keep it
+      // non-enumerable (like the native `cause`) for code that copies an
+      // error's own properties, e.g. Jest sending a failure between workers.
+      Object.defineProperty(this, 'cause', {
+        value: options.cause,
+        enumerable: false,
+        writable: true,
+        configurable: true,
+      });
     }
   }
 
