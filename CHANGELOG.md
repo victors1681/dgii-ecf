@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`validateXMLCertificate` accepts documents pretty-printed after
+  signing**: many issuers sign the compact e-CF and then indent it (often
+  with CRLF line breaks) before sending it. Strict XMLDSig counts that
+  whitespace, so authentic documents failed with `Signature validation
+  failed` (about a quarter of the e-CF one receiver got). When the strict
+  check fails, the signature is checked again with the whitespace-only text
+  between elements removed; text inside values is never touched, so changing
+  any value still fails. Results that needed this carry
+  `whitespaceNormalized: true`.
+
 ## [1.9.1] - 2026-10-07
 
 ### Fixed
