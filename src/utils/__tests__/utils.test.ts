@@ -149,4 +149,52 @@ describe('Test util function ', () => {
     const result = validateXMLCertificate(xmlSigned, { silent: true });
     expect(result.isValid).toBeFalsy();
   });
+
+  describe('signed compact, then pretty-printed by the issuer', () => {
+    const compactSigned = fs.readFileSync(
+      path.resolve(__dirname, './sample/130359334E310000008928.xml'),
+      'utf8'
+    );
+    // What issuers send: indentation and CRLF line breaks between elements.
+    const prettyPrinted = compactSigned.replace(/></g, '>\r\n  <');
+
+    it('accepts it and flags the normalization', () => {
+      const result = validateXMLCertificate(prettyPrinted, { silent: true });
+      expect(result.isValid).toBeTruthy();
+      expect(result.cert).toBeDefined();
+      expect(result.whitespaceNormalized).toBe(true);
+    });
+
+    it('accepts it with a UTF-8 BOM', () => {
+      const result = validateXMLCertificate(`\uFEFF${prettyPrinted}`, {
+        silent: true,
+      });
+      expect(result.isValid).toBeTruthy();
+    });
+
+    it('does not flag a document that verifies as received', () => {
+      const result = validateXMLCertificate(compactSigned, { silent: true });
+      expect(result.whitespaceNormalized).toBeUndefined();
+    });
+
+    it('still rejects a changed value', () => {
+      const tampered = prettyPrinted.replace(
+        '<eNCF>E310000008928</eNCF>',
+        '<eNCF>E310000008929</eNCF>'
+      );
+      expect(tampered).not.toBe(prettyPrinted);
+      const result = validateXMLCertificate(tampered, { silent: true });
+      expect(result.isValid).toBeFalsy();
+      expect(result.error).toBe('Signature validation failed');
+    });
+
+    it('still rejects whitespace added inside a value', () => {
+      const tampered = prettyPrinted.replace(
+        '<eNCF>E310000008928</eNCF>',
+        '<eNCF> E310000008928</eNCF>'
+      );
+      const result = validateXMLCertificate(tampered, { silent: true });
+      expect(result.isValid).toBeFalsy();
+    });
+  });
 });

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as xpath from 'xpath';
-import { DOMParser } from '@xmldom/xmldom';
+import { DOMParser, XMLSerializer } from '@xmldom/xmldom';
 import { SignedXml } from 'xml-crypto';
 
 interface ValidateXMLOptions {
@@ -11,7 +11,45 @@ interface ValidationResponse {
   isValid: boolean;
   cert?: crypto.X509Certificate; // This is the certificate object with public key and other properties
   error?: string;
+  /**
+   * True when the signature only verified after dropping the indentation
+   * between elements: the issuer signed the compact XML and pretty-printed it
+   * afterwards. The signed data is unchanged.
+   */
+  whitespaceNormalized?: boolean;
 }
+
+/**
+ * Drop whitespace-only text nodes that sit between elements (indentation and
+ * line breaks, CRLF included). Text inside a leaf element is left untouched,
+ * so changing any value, even to whitespace, still breaks the signature.
+ */
+const removeIndentation = (node: Node): void => {
+  const children = Array.from(node.childNodes);
+  const hasElementChild = children.some(
+    (child) => child.nodeType === child.ELEMENT_NODE
+  );
+  for (const child of children) {
+    if (
+      hasElementChild &&
+      child.nodeType === child.TEXT_NODE &&
+      !/\S/.test(child.nodeValue || '')
+    ) {
+      node.removeChild(child);
+    } else if (child.nodeType === child.ELEMENT_NODE) {
+      removeIndentation(child);
+    }
+  }
+};
+
+const toCompactXml = (xml: string): string => {
+  const doc = new DOMParser().parseFromString(
+    xml.replace(/^\uFEFF/, ''),
+    'text/xml'
+  );
+  removeIndentation(doc);
+  return new XMLSerializer().serializeToString(doc);
+};
 
 /**
  * This function validates the XML signature of a given XML string.
@@ -39,7 +77,26 @@ export const validateXMLCertificate = (
       throw new Error('Signature not found in the XML.');
     }
 
-    const response = validateXmlCertificate(xml, options);
+    const response = validateXmlCertificate(xml, { silent: true });
+    if (response.isValid) {
+      return response;
+    }
+
+    // Many issuers sign the compact document and then pretty-print it before
+    // sending it, which strict XMLDSig verification rejects. Retry on the
+    // compact form; only a signature failure is worth retrying.
+    if (response.error === 'Signature validation failed') {
+      const compact = validateXmlCertificate(toCompactXml(xml), {
+        silent: true,
+      });
+      if (compact.isValid) {
+        return { ...compact, whitespaceNormalized: true };
+      }
+    }
+
+    if (!options.silent) {
+      console.error('Error validating XML certificate:', response.error);
+    }
     return response;
   } catch (error) {
     return {
