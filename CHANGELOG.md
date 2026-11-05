@@ -27,10 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`checkDocumentStatus` accepts `montoTotal`**: when given, only the
   service that can answer is asked, so an RFCE summary costs one request
   instead of two (ConsultaTrackIds can never find a summary). A summary
-  without `codigoSeguridad` then throws before calling DGII.
-- **`isSummaryInvoice` and `SUMMARY_INVOICE_LIMIT`**: one rule for whether an
-  e-CF 32 is sent as an RFCE summary (total below RD$250,000) or as a full
-  e-CF (RD$250,000 or more), to use both when routing and when checking.
+  without `codigoSeguridad` then throws before calling DGII. A blank or
+  non-numeric `montoTotal` counts as not given.
+- **`isSummaryInvoice`, `parseMontoTotal` and `SUMMARY_INVOICE_LIMIT`**: one
+  rule for whether an e-CF 32 is sent as an RFCE summary (total below
+  RD$250,000) or as a full e-CF (RD$250,000 or more), to use both when
+  routing and when checking. A missing, blank or non-numeric total is never
+  a summary (`Number('')` would be `0`).
 - **Response types are exported from the package root**: `TrackStatusEnum`,
   `TrackingStatusResponse`, `SummaryTrackingStatusResponse`,
   `InquiryStatusResponse` and the rest of `networking/types` can now be

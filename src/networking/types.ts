@@ -87,7 +87,8 @@ export interface CheckDocumentStatusParams {
   /**
    * Invoice total (`Totales.MontoTotal`). Optional; when given, only the
    * service that can answer is asked: ConsultaEstado for an RFCE summary
-   * (see `isSummaryInvoice`), ConsultaTrackIds for everything else.
+   * (see `isSummaryInvoice`), ConsultaTrackIds for everything else. A blank
+   * or non-numeric value counts as not given.
    */
   montoTotal?: number | string;
 }

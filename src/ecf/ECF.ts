@@ -15,7 +15,7 @@ import {
   TrackStatusEnum,
   VoidNCFResponse,
 } from '../networking/types';
-import { isSummaryInvoice } from '../utils/isSummaryInvoice';
+import { isSummaryInvoice, parseMontoTotal } from '../utils/isSummaryInvoice';
 import { DgiiApiError } from '../networking/DgiiApiError';
 
 /**
@@ -237,7 +237,7 @@ class ECF {
    * that can answer (see `isSummaryInvoice`), one request instead of two for
    * a summary. Without it, ConsultaTrackIds is asked first and ConsultaEstado
    * is only used for an `E32` e-NCF it does not know, when `codigoSeguridad`
-   * is given.
+   * is given. A blank or non-numeric `montoTotal` counts as not given.
    *
    * A document DGII has no record of resolves to `No encontrado` instead of
    * throwing; other errors (authentication, network, missing RNC comprador)
@@ -250,10 +250,13 @@ class ECF {
   checkDocumentStatus = async (
     params: CheckDocumentStatusParams
   ): Promise<DocumentStatusResult> => {
-    const { encf, montoTotal, codigoSeguridad } = params;
-    const knowsTotal = montoTotal !== undefined && montoTotal !== null;
+    const { encf, codigoSeguridad } = params;
+    // An unusable total ('', 'N/A', ...) counts as unknown, so the fallback
+    // below still reaches ConsultaEstado instead of trusting a bad route.
+    const total = parseMontoTotal(params.montoTotal);
+    const knowsTotal = total !== undefined;
 
-    if (knowsTotal && isSummaryInvoice(encf, montoTotal)) {
+    if (knowsTotal && isSummaryInvoice(encf, total)) {
       if (!codigoSeguridad) {
         throw new Error(
           `codigoSeguridad is required to check the RFCE summary ${encf} (e-CF 32 < RD$250,000)`

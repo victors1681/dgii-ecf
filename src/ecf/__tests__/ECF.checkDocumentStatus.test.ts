@@ -272,6 +272,48 @@ describe('ECF.checkDocumentStatus', () => {
       expect(result.status).toBe(TrackStatusEnum.ACCEPTED);
       expect(result.source).toBe('ConsultaTrackIds');
     });
+
+    it.each([['N/A'], [''], ['   ']])(
+      'treats an unusable total (%p) as unknown and still reaches ConsultaEstado',
+      async (montoTotal) => {
+        mock.onGet(TRACK_IDS).reply(400, trackIdNotFound);
+        mock
+          .onGet(INQUIRY_STATUS)
+          .reply(200, { codigo: 1, estado: 'Aceptado' });
+
+        const result = await ecf.checkDocumentStatus({
+          rncEmisor,
+          encf: 'E320000000013',
+          rncComprador,
+          codigoSeguridad: 'ABC123',
+          montoTotal,
+        });
+
+        expect(result.status).toBe(TrackStatusEnum.ACCEPTED);
+        expect(result.source).toBe('ConsultaEstado');
+        expect(mock.history.get.map((req) => req.url)).toEqual([
+          TRACK_IDS,
+          INQUIRY_STATUS,
+        ]);
+      }
+    );
+
+    it('does not route a full e-CF 32 with a blank total as a summary', async () => {
+      // Number('') is 0, which would wrongly mark it as a summary and throw
+      // for the missing codigoSeguridad.
+      mock
+        .onGet(TRACK_IDS)
+        .reply(200, [entry('track-32', TrackStatusEnum.ACCEPTED)]);
+
+      const result = await ecf.checkDocumentStatus({
+        rncEmisor,
+        encf: 'E320000000014',
+        montoTotal: '',
+      });
+
+      expect(result.status).toBe(TrackStatusEnum.ACCEPTED);
+      expect(result.trackId).toBe('track-32');
+    });
   });
 
   it('rethrows errors that do not mean "not found"', async () => {
