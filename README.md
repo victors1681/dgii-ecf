@@ -340,7 +340,9 @@ const result = await ecf.checkDocumentStatus({
 
 switch (result.status) {
   case TrackStatusEnum.NOT_FOUND:
-    // DGII has no record of the e-NCF: safe to send it again
+    // DGII has no record of the e-NCF: safe to send it again.
+    // For an RFCE summary (e-CF 32 < 250K) this only holds when you passed
+    // the exact codigoSeguridad: without it, NOT_FOUND proves nothing.
     break;
   case TrackStatusEnum.IN_PROCESS:
     // DGII is still validating it: wait and check again, do not resend
@@ -375,7 +377,7 @@ How the status is decided:
 - When the e-NCF was sent more than once, an accepted submission wins over later rejected resends, and `En Proceso` wins over `Rechazado`. `trackId` is the submission that decided the status.
 - With `montoTotal`, only one service is asked: `ConsultaEstado` for an RFCE summary, `ConsultaTrackIds` for everything else. A summary then costs one request instead of two, and a missing `codigoSeguridad` throws before calling DGII.
 - Without `montoTotal`, `ConsultaTrackIds` is asked first, and `ConsultaEstado` is only used for an `E32` e-NCF it does not know, when `codigoSeguridad` is given. Its response is returned in `inquiry`.
-- "Not found" resolves to `No encontrado` instead of throwing. Other errors (authentication, network, missing RNC comprador) are still thrown as `DgiiApiError`.
+- "Not found" resolves to `No encontrado` instead of throwing. Other errors (authentication, network, missing RNC comprador) are still thrown as `DgiiApiError`, as is a `ConsultaEstado` response with no recognized `codigo`.
 
 > **Important for RFCE summaries:** store the `CodigoSeguridadeCF` you send in
 > each summary. Without it, or with a different code, DGII answers

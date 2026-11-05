@@ -19,7 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ConsultaEstado` when `codigoSeguridad` is given. When the e-NCF was sent
   more than once, an accepted submission wins over later rejected resends.
   A document DGII does not know resolves to `No encontrado` instead of
-  throwing the HTTP 400 `TrackId no encontrado.`. New types:
+  throwing the HTTP 400 `TrackId no encontrado.`; a `ConsultaEstado`
+  response without a recognized `codigo` throws instead, so it never reads
+  as safe to resend. New types:
   `CheckDocumentStatusParams`, `DocumentStatusResult`,
   `DocumentStatusSource`.
 - **`checkDocumentStatus` accepts `montoTotal`**: when given, only the

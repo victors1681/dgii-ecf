@@ -78,6 +78,24 @@ describe('ECF.checkDocumentStatus', () => {
     expect(result.trackId).toBe('pending');
   });
 
+  it('reports a conditionally accepted submission over pending and rejected ones', async () => {
+    mock
+      .onGet(TRACK_IDS)
+      .reply(200, [
+        entry('rejected', TrackStatusEnum.REJECTED),
+        entry('pending', TrackStatusEnum.IN_PROCESS),
+        entry('conditional', TrackStatusEnum.CONDITIONAL_ACCEPTED),
+      ]);
+
+    const result = await ecf.checkDocumentStatus({
+      rncEmisor,
+      encf: 'E310000000008',
+    });
+
+    expect(result.status).toBe(TrackStatusEnum.CONDITIONAL_ACCEPTED);
+    expect(result.trackId).toBe('conditional');
+  });
+
   it('reports a rejected e-CF when every submission was rejected', async () => {
     mock
       .onGet(TRACK_IDS)
@@ -263,4 +281,49 @@ describe('ECF.checkDocumentStatus', () => {
       ecf.checkDocumentStatus({ rncEmisor, encf: 'E310000000006' })
     ).rejects.toMatchObject({ status: 401 });
   });
+
+  it('rethrows an HTTP 400 that is not "TrackId no encontrado."', async () => {
+    const validationError = { codigo: 99, estado: 'RNC emisor inválido.' };
+    mock.onGet(TRACK_IDS).reply(400, validationError);
+
+    await expect(
+      ecf.checkDocumentStatus({ rncEmisor, encf: 'E310000000007' })
+    ).rejects.toMatchObject({ status: 400, data: validationError });
+  });
+
+  it('rethrows ConsultaEstado errors for an RFCE summary', async () => {
+    mock.onGet(TRACK_IDS).reply(400, trackIdNotFound);
+    mock.onGet(INQUIRY_STATUS).reply(401);
+
+    await expect(
+      ecf.checkDocumentStatus({
+        rncEmisor,
+        encf: 'E320000000020',
+        rncComprador,
+        codigoSeguridad: 'ABC123',
+      })
+    ).rejects.toMatchObject({ status: 401 });
+  });
+
+  it.each([
+    ['an empty body', ''],
+    ['a body without codigo', { estado: 'Aceptado' }],
+    ['a null codigo', { codigo: null, estado: 'No encontrado' }],
+    ['an unknown codigo', { codigo: 7, estado: 'Desconocido' }],
+  ])(
+    'throws instead of reporting "No encontrado" when ConsultaEstado returns %s',
+    async (_label, body) => {
+      mock.onGet(INQUIRY_STATUS).reply(200, body);
+
+      await expect(
+        ecf.checkDocumentStatus({
+          rncEmisor,
+          encf: 'E320000000021',
+          rncComprador,
+          codigoSeguridad: 'ABC123',
+          montoTotal: 637.2,
+        })
+      ).rejects.toThrow(/unrecognized codigo/);
+    }
+  );
 });

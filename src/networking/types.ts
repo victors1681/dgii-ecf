@@ -100,7 +100,10 @@ export interface DocumentStatusResult {
   /**
    * Overall status of the e-NCF. When it was sent more than once, an accepted
    * submission wins over later rejected resends.
-   * Only `No encontrado` means DGII has no record of the document.
+   * `No encontrado` means DGII has no record of the document, with one
+   * exception: an RFCE summary (e-CF 32 < RD$250,000) checked without its
+   * exact `codigoSeguridad` is reported as `No encontrado` even when DGII
+   * accepted it, so that result does not prove it is safe to resend.
    */
   status: TrackStatusEnum;
   /** trackId of the submission that decided `status`, when there is one. */

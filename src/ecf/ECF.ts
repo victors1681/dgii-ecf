@@ -16,6 +16,7 @@ import {
   VoidNCFResponse,
 } from '../networking/types';
 import { isSummaryInvoice } from '../utils/isSummaryInvoice';
+import { DgiiApiError } from '../networking/DgiiApiError';
 
 /**
  * Order used to pick the overall status when an e-NCF was submitted more than
@@ -316,10 +317,24 @@ class ECF {
       codigoSeguridad
     );
 
+    // Only codigo 0 means "No encontrado". An empty or unexpected body must
+    // not read as "not found", since callers treat that as safe to resend.
+    const codigo: unknown = inquiry?.codigo;
+    const hasCodigo =
+      typeof codigo === 'number' ||
+      (typeof codigo === 'string' && codigo.trim() !== '');
+    const status = hasCodigo
+      ? INQUIRY_STATUS_BY_CODE[Number(codigo)]
+      : undefined;
+    if (!status) {
+      throw new DgiiApiError(
+        `ConsultaEstado returned an unrecognized codigo for ${encf}`,
+        { data: inquiry }
+      );
+    }
+
     return {
-      status:
-        INQUIRY_STATUS_BY_CODE[Number(inquiry?.codigo)] ??
-        TrackStatusEnum.NOT_FOUND,
+      status,
       source: 'ConsultaEstado',
       trackIds: [],
       inquiry,

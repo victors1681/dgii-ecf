@@ -40,7 +40,20 @@ const waitForTrackStatuses = async (
 ): Promise<SummaryTrackingStatusResponse[]> => {
   let statuses: SummaryTrackingStatusResponse[] = [];
   for (let attempt = 0; attempt < attempts; attempt++) {
-    statuses = (await ecf.trackStatuses(rncEmisor, encf)) ?? [];
+    try {
+      statuses = (await ecf.trackStatuses(rncEmisor, encf)) ?? [];
+    } catch (err) {
+      // A just-sent e-CF may not be registered yet: DGII answers
+      // `TrackId no encontrado.` (HTTP 400) until it is, so keep polling.
+      const { status, data } = (err ?? {}) as {
+        status?: number;
+        data?: { estado?: unknown };
+      };
+      if (status !== 400 || !/no encontrado/i.test(String(data?.estado))) {
+        throw err;
+      }
+      statuses = [];
+    }
     const settled = statuses.every(
       (status) => status.estado !== TrackStatusEnum.IN_PROCESS
     );
