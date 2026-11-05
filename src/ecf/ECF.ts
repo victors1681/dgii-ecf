@@ -5,12 +5,63 @@ import Signature from '../Signature/Signature';
 import { setAuthToken } from '../networking/restClient';
 import {
   AuthToken,
+  CheckDocumentStatusParams,
   CommercialApprovalResponse,
+  DocumentStatusResult,
   InvoiceResponse,
   Opperation,
   ServiceDirectoryResponse,
+  SummaryTrackingStatusResponse,
+  TrackStatusEnum,
   VoidNCFResponse,
 } from '../networking/types';
+import { isSummaryInvoice, parseMontoTotal } from '../utils/isSummaryInvoice';
+import { DgiiApiError } from '../networking/DgiiApiError';
+
+/**
+ * Order used to pick the overall status when an e-NCF was submitted more than
+ * once: an accepted submission wins, and a pending one beats a rejection
+ * because DGII may still accept it.
+ */
+const TRACK_STATUS_PRIORITY: TrackStatusEnum[] = [
+  TrackStatusEnum.ACCEPTED,
+  TrackStatusEnum.CONDITIONAL_ACCEPTED,
+  TrackStatusEnum.IN_PROCESS,
+  TrackStatusEnum.REJECTED,
+];
+
+/**
+ * `ConsultaTrackIds` answers an unknown e-NCF with HTTP 400 and
+ * `{ codigo: 0, estado: 'TrackId no encontrado.' }` instead of an empty list.
+ */
+const isTrackIdNotFound = (err: unknown): boolean => {
+  const { status, data } = (err ?? {}) as { status?: number; data?: unknown };
+  const estado = (data as { estado?: unknown } | undefined)?.estado;
+  return (
+    status === 400 &&
+    typeof estado === 'string' &&
+    /no encontrado/i.test(estado)
+  );
+};
+
+const pickTrackStatus = (
+  entries: SummaryTrackingStatusResponse[]
+): SummaryTrackingStatusResponse | undefined => {
+  for (const status of TRACK_STATUS_PRIORITY) {
+    const match = entries.find((entry) => entry.estado === status);
+    if (match) {
+      return match;
+    }
+  }
+  return entries[0];
+};
+
+const INQUIRY_STATUS_BY_CODE: Record<number, TrackStatusEnum> = {
+  0: TrackStatusEnum.NOT_FOUND,
+  1: TrackStatusEnum.ACCEPTED,
+  2: TrackStatusEnum.REJECTED,
+};
+
 class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;
@@ -167,6 +218,130 @@ class ECF {
     } catch (error) {
       throw error;
     }
+  };
+
+  /**
+   * Checks whether DGII already received an e-NCF, choosing the right service
+   * for the way the document was sent. Use it before retrying a submission
+   * whose response was lost: resending a document DGII already received
+   * returns `Rechazado`.
+   *
+   * 1. `ConsultaTrackIds` (RNC emisor + e-NCF): every document sent with
+   *    `sendElectronicDocument`, including e-CF 32 >= RD$250,000. When the
+   *    e-NCF was sent more than once, an accepted submission wins over later
+   *    rejected resends, and `En Proceso` wins over `Rechazado`.
+   * 2. `ConsultaEstado` (`inquiryStatus`): RFCE summaries (e-CF 32 <
+   *    RD$250,000), which never get a trackId.
+   *
+   * Pass `montoTotal` when you know it: the method then asks only the service
+   * that can answer (see `isSummaryInvoice`), one request instead of two for
+   * a summary. Without it, ConsultaTrackIds is asked first and ConsultaEstado
+   * is only used for an `E32` e-NCF it does not know, when `codigoSeguridad`
+   * is given. A blank or non-numeric `montoTotal` counts as not given.
+   *
+   * A document DGII has no record of resolves to `No encontrado` instead of
+   * throwing; other errors (authentication, network, missing RNC comprador)
+   * are thrown as `DgiiApiError`.
+   *
+   * @throws Error when `montoTotal` marks an RFCE summary and
+   * `codigoSeguridad` is missing: the summary cannot be found without it.
+   * @returns The overall status, the deciding trackId, and the raw responses
+   */
+  checkDocumentStatus = async (
+    params: CheckDocumentStatusParams
+  ): Promise<DocumentStatusResult> => {
+    const { encf, codigoSeguridad } = params;
+    // An unusable total ('', 'N/A', ...) counts as unknown, so the fallback
+    // below still reaches ConsultaEstado instead of trusting a bad route.
+    const total = parseMontoTotal(params.montoTotal);
+    const knowsTotal = total !== undefined;
+
+    if (knowsTotal && isSummaryInvoice(encf, total)) {
+      if (!codigoSeguridad) {
+        throw new Error(
+          `codigoSeguridad is required to check the RFCE summary ${encf} (e-CF 32 < RD$250,000)`
+        );
+      }
+      return this.checkSummaryStatus(params);
+    }
+
+    const byTrackIds = await this.checkTrackIdsStatus(params);
+    const canBeSummary = !knowsTotal && /^E32/i.test(encf) && !!codigoSeguridad;
+
+    if (byTrackIds.status !== TrackStatusEnum.NOT_FOUND || !canBeSummary) {
+      return byTrackIds;
+    }
+
+    return this.checkSummaryStatus(params);
+  };
+
+  /** `checkDocumentStatus` through ConsultaTrackIds (RNC emisor + e-NCF). */
+  private checkTrackIdsStatus = async ({
+    rncEmisor,
+    encf,
+  }: CheckDocumentStatusParams): Promise<DocumentStatusResult> => {
+    try {
+      const trackIds =
+        (await this._api.getAllTrackingncfApi(rncEmisor, encf)) ?? [];
+      const decisive = pickTrackStatus(trackIds);
+
+      if (decisive) {
+        return {
+          status: decisive.estado as TrackStatusEnum,
+          trackId: decisive.trackId,
+          source: 'ConsultaTrackIds',
+          trackIds,
+        };
+      }
+    } catch (err) {
+      if (!isTrackIdNotFound(err)) {
+        throw err;
+      }
+    }
+
+    return {
+      status: TrackStatusEnum.NOT_FOUND,
+      source: 'ConsultaTrackIds',
+      trackIds: [],
+    };
+  };
+
+  /** `checkDocumentStatus` through ConsultaEstado, for RFCE summaries. */
+  private checkSummaryStatus = async ({
+    rncEmisor,
+    encf,
+    rncComprador,
+    codigoSeguridad,
+  }: CheckDocumentStatusParams): Promise<DocumentStatusResult> => {
+    const inquiry = await this._api.inquiryStatusApi(
+      rncEmisor,
+      encf,
+      rncComprador,
+      codigoSeguridad
+    );
+
+    // Only codigo 0 means "No encontrado". An empty or unexpected body must
+    // not read as "not found", since callers treat that as safe to resend.
+    const codigo: unknown = inquiry?.codigo;
+    const hasCodigo =
+      typeof codigo === 'number' ||
+      (typeof codigo === 'string' && codigo.trim() !== '');
+    const status = hasCodigo
+      ? INQUIRY_STATUS_BY_CODE[Number(codigo)]
+      : undefined;
+    if (!status) {
+      throw new DgiiApiError(
+        `ConsultaEstado returned an unrecognized codigo for ${encf}`,
+        { data: inquiry }
+      );
+    }
+
+    return {
+      status,
+      source: 'ConsultaEstado',
+      trackIds: [],
+      inquiry,
+    };
   };
 
   /**

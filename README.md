@@ -290,11 +290,109 @@ const silentResult = validateXMLCertificate(xmlString, { silent: true });
 
 ###### Get all the tracks IDs
 
-Return all the tracking associated with a NCF
+Return all the tracking associated with a NCF (`ConsultaTrackIds`, RNC emisor + e-NCF). Every time the e-NCF was sent produces an entry, so a resend shows up next to the original submission.
 
 ```ts
 const ecf = new ECF(certs, ENVIRONMENT.DEV);
 const response = await ecf.trackStatuses(rnc, noEcf);
+```
+
+```json
+[
+  {
+    "trackId": "bfa49ac2-9404-4fbd-8baa-d482aac7129a",
+    "estado": "Aceptado",
+    "fechaRecepcion": "05/11/2026"
+  }
+]
+```
+
+> **Note:** an e-NCF DGII has no trackId for is answered with HTTP 400 and
+> `{ "codigo": 0, "estado": "TrackId no encontrado." }`, so `trackStatuses`
+> throws a `DgiiApiError` (read `err.data.estado`). RFCE summaries (e-CF 32 <
+> RD$250,000) never get a trackId and are always reported this way, use
+> `inquiryStatus` or `checkDocumentStatus` for them.
+
+###### Check Document Status (before retrying a submission)
+
+When the connection drops after sending an e-CF, the trackId may never arrive. Resending blindly is not safe: if DGII already received the e-NCF, the resend comes back `Rechazado`. `checkDocumentStatus` tells you whether DGII already has the document, and picks the right service for how it was sent:
+
+| Document                       | Sent with                | Checked with                                            |
+| ------------------------------ | ------------------------ | ------------------------------------------------------- |
+| e-CF 31, 32 >= 250K, others    | `sendElectronicDocument` | `ConsultaTrackIds` (RNC emisor + e-NCF)                 |
+| e-CF 32 < 250K (RFCE summary)  | `sendSummary`            | `ConsultaEstado` (+ RNC comprador + security code)      |
+
+```ts
+import { TrackStatusEnum } from 'dgii-ecf';
+
+const ecf = new ECF(certs, ENVIRONMENT.DEV);
+await ecf.authenticate();
+
+const result = await ecf.checkDocumentStatus({
+  rncEmisor,
+  encf,
+  // Optional: with the total only the service that can answer is asked
+  montoTotal,
+  // Only needed for an RFCE summary (e-CF 32 < 250K):
+  rncComprador,
+  codigoSeguridad,
+});
+
+switch (result.status) {
+  case TrackStatusEnum.NOT_FOUND:
+    // DGII has no record of the e-NCF: safe to send it again.
+    // For an RFCE summary (e-CF 32 < 250K) this only holds when you passed
+    // the exact codigoSeguridad: without it, NOT_FOUND proves nothing.
+    break;
+  case TrackStatusEnum.IN_PROCESS:
+    // DGII is still validating it: wait and check again, do not resend
+    break;
+  case TrackStatusEnum.ACCEPTED:
+  case TrackStatusEnum.CONDITIONAL_ACCEPTED:
+    // Already accepted: store result.trackId, do not resend
+    break;
+  case TrackStatusEnum.REJECTED:
+    // Every submission was rejected: fix the document before sending again
+    break;
+}
+```
+
+```json
+{
+  "status": "Aceptado",
+  "trackId": "bfa49ac2-9404-4fbd-8baa-d482aac7129a",
+  "source": "ConsultaTrackIds",
+  "trackIds": [
+    {
+      "trackId": "bfa49ac2-9404-4fbd-8baa-d482aac7129a",
+      "estado": "Aceptado",
+      "fechaRecepcion": "05/11/2026"
+    }
+  ]
+}
+```
+
+How the status is decided:
+
+- When the e-NCF was sent more than once, an accepted submission wins over later rejected resends, and `En Proceso` wins over `Rechazado`. `trackId` is the submission that decided the status.
+- With `montoTotal`, only one service is asked: `ConsultaEstado` for an RFCE summary, `ConsultaTrackIds` for everything else. A summary then costs one request instead of two, and a missing `codigoSeguridad` throws before calling DGII.
+- Without `montoTotal`, `ConsultaTrackIds` is asked first, and `ConsultaEstado` is only used for an `E32` e-NCF it does not know, when `codigoSeguridad` is given. Its response is returned in `inquiry`.
+- "Not found" resolves to `No encontrado` instead of throwing. Other errors (authentication, network, missing RNC comprador) are still thrown as `DgiiApiError`, as is a `ConsultaEstado` response with no recognized `codigo`.
+
+> **Important for RFCE summaries:** store the `CodigoSeguridadeCF` you send in
+> each summary. Without it, or with a different code, DGII answers
+> `No encontrado` even for an accepted summary, and a resend would be rejected.
+
+###### Summary or full e-CF 32 (`isSummaryInvoice`)
+
+An e-CF 32 with a total below RD$250,000 is sent as an RFCE summary (`sendSummary`); from RD$250,000 (inclusive) it is sent as a full e-CF (`sendElectronicDocument`). Use the same helper to route a document and to check it, so the two never disagree:
+
+```ts
+import { isSummaryInvoice, SUMMARY_INVOICE_LIMIT } from 'dgii-ecf';
+
+isSummaryInvoice('E320000000001', 249999.99); // true  -> sendSummary
+isSummaryInvoice('E320000000001', 250000); // false -> sendElectronicDocument
+isSummaryInvoice('E310000000001', 100); // false (only e-CF 32)
 ```
 
 ###### Inquiry Status

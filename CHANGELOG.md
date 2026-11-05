@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-11-05
+
+### Added
+
+- **`checkDocumentStatus` tells whether DGII already received an e-NCF**:
+  use it before retrying a submission whose response was lost, since a
+  resend of a document DGII already has comes back `Rechazado`. It looks the
+  e-NCF up in `ConsultaTrackIds` (RNC emisor + e-NCF), and for an RFCE
+  summary (e-CF 32 < RD$250,000), which never gets a trackId, falls back to
+  `ConsultaEstado` when `codigoSeguridad` is given. When the e-NCF was sent
+  more than once, an accepted submission wins over later rejected resends.
+  A document DGII does not know resolves to `No encontrado` instead of
+  throwing the HTTP 400 `TrackId no encontrado.`; a `ConsultaEstado`
+  response without a recognized `codigo` throws instead, so it never reads
+  as safe to resend. New types:
+  `CheckDocumentStatusParams`, `DocumentStatusResult`,
+  `DocumentStatusSource`.
+- **`checkDocumentStatus` accepts `montoTotal`**: when given, only the
+  service that can answer is asked, so an RFCE summary costs one request
+  instead of two (ConsultaTrackIds can never find a summary). A summary
+  without `codigoSeguridad` then throws before calling DGII. A blank or
+  non-numeric `montoTotal` counts as not given.
+- **`isSummaryInvoice`, `parseMontoTotal` and `SUMMARY_INVOICE_LIMIT`**: one
+  rule for whether an e-CF 32 is sent as an RFCE summary (total below
+  RD$250,000) or as a full e-CF (RD$250,000 or more), to use both when
+  routing and when checking. A missing, blank or non-numeric total is never
+  a summary (`Number('')` would be `0`).
+- **Response types are exported from the package root**: `TrackStatusEnum`,
+  `TrackingStatusResponse`, `SummaryTrackingStatusResponse`,
+  `InquiryStatusResponse` and the rest of `networking/types` can now be
+  imported from `dgii-ecf`, so `checkDocumentStatus` results can be compared
+  against `TrackStatusEnum`.
+
 ## [1.9.2] - 2026-10-21
 
 ### Fixed
