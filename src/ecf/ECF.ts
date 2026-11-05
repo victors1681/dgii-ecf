@@ -5,12 +5,61 @@ import Signature from '../Signature/Signature';
 import { setAuthToken } from '../networking/restClient';
 import {
   AuthToken,
+  CheckDocumentStatusParams,
   CommercialApprovalResponse,
+  DocumentStatusResult,
   InvoiceResponse,
   Opperation,
   ServiceDirectoryResponse,
+  SummaryTrackingStatusResponse,
+  TrackStatusEnum,
   VoidNCFResponse,
 } from '../networking/types';
+
+/**
+ * Order used to pick the overall status when an e-NCF was submitted more than
+ * once: an accepted submission wins, and a pending one beats a rejection
+ * because DGII may still accept it.
+ */
+const TRACK_STATUS_PRIORITY: TrackStatusEnum[] = [
+  TrackStatusEnum.ACCEPTED,
+  TrackStatusEnum.CONDITIONAL_ACCEPTED,
+  TrackStatusEnum.IN_PROCESS,
+  TrackStatusEnum.REJECTED,
+];
+
+/**
+ * `ConsultaTrackIds` answers an unknown e-NCF with HTTP 400 and
+ * `{ codigo: 0, estado: 'TrackId no encontrado.' }` instead of an empty list.
+ */
+const isTrackIdNotFound = (err: unknown): boolean => {
+  const { status, data } = (err ?? {}) as { status?: number; data?: unknown };
+  const estado = (data as { estado?: unknown } | undefined)?.estado;
+  return (
+    status === 400 &&
+    typeof estado === 'string' &&
+    /no encontrado/i.test(estado)
+  );
+};
+
+const pickTrackStatus = (
+  entries: SummaryTrackingStatusResponse[]
+): SummaryTrackingStatusResponse | undefined => {
+  for (const status of TRACK_STATUS_PRIORITY) {
+    const match = entries.find((entry) => entry.estado === status);
+    if (match) {
+      return match;
+    }
+  }
+  return entries[0];
+};
+
+const INQUIRY_STATUS_BY_CODE: Record<number, TrackStatusEnum> = {
+  0: TrackStatusEnum.NOT_FOUND,
+  1: TrackStatusEnum.ACCEPTED,
+  2: TrackStatusEnum.REJECTED,
+};
+
 class ECF {
   private _api: RestApi;
   private _p12ReaderData: P12ReaderData;
@@ -167,6 +216,79 @@ class ECF {
     } catch (error) {
       throw error;
     }
+  };
+
+  /**
+   * Checks whether DGII already received an e-NCF, choosing the right service
+   * for the way the document was sent. Use it before retrying a submission
+   * whose response was lost: resending a document DGII already received
+   * returns `Rechazado`.
+   *
+   * 1. `ConsultaTrackIds` (RNC emisor + e-NCF): every document sent with
+   *    `sendElectronicDocument`, including e-CF 32 >= RD$250,000. When the
+   *    e-NCF was sent more than once, an accepted submission wins over later
+   *    rejected resends, and `En Proceso` wins over `Rechazado`.
+   * 2. `ConsultaEstado` (`inquiryStatus`): RFCE summaries (e-CF 32 <
+   *    RD$250,000), which never get a trackId. Only used for an `E32` e-NCF
+   *    that ConsultaTrackIds does not know, and only when `codigoSeguridad`
+   *    is given.
+   *
+   * A document DGII has no record of resolves to `No encontrado` instead of
+   * throwing; other errors (authentication, network, missing RNC comprador)
+   * are thrown as `DgiiApiError`.
+   *
+   * @returns The overall status, the deciding trackId, and the raw responses
+   */
+  checkDocumentStatus = async ({
+    rncEmisor,
+    encf,
+    rncComprador,
+    codigoSeguridad,
+  }: CheckDocumentStatusParams): Promise<DocumentStatusResult> => {
+    try {
+      const trackIds =
+        (await this._api.getAllTrackingncfApi(rncEmisor, encf)) ?? [];
+      const decisive = pickTrackStatus(trackIds);
+
+      if (decisive) {
+        return {
+          status: decisive.estado as TrackStatusEnum,
+          trackId: decisive.trackId,
+          source: 'ConsultaTrackIds',
+          trackIds,
+        };
+      }
+    } catch (err) {
+      if (!isTrackIdNotFound(err)) {
+        throw err;
+      }
+    }
+
+    const isSummaryCandidate = /^E32/i.test(encf) && !!codigoSeguridad;
+
+    if (!isSummaryCandidate) {
+      return {
+        status: TrackStatusEnum.NOT_FOUND,
+        source: 'ConsultaTrackIds',
+        trackIds: [],
+      };
+    }
+
+    const inquiry = await this._api.inquiryStatusApi(
+      rncEmisor,
+      encf,
+      rncComprador,
+      codigoSeguridad
+    );
+
+    return {
+      status:
+        INQUIRY_STATUS_BY_CODE[Number(inquiry?.codigo)] ??
+        TrackStatusEnum.NOT_FOUND,
+      source: 'ConsultaEstado',
+      trackIds: [],
+      inquiry,
+    };
   };
 
   /**

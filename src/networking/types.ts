@@ -67,6 +67,46 @@ export enum TrackStatusEnum {
   IN_PROCESS = 'En Proceso',
   CONDITIONAL_ACCEPTED = 'Aceptado Condicional',
 }
+/** Parameters for `ECF.checkDocumentStatus`. */
+export interface CheckDocumentStatusParams {
+  /** RNC of the issuer that sent the document. */
+  rncEmisor: string;
+  /** Electronic NCF, e.g. `E310000000001`. */
+  encf: string;
+  /**
+   * Buyer RNC. Only used for an RFCE summary (e-CF 32 < RD$250,000), where
+   * DGII requires it together with `codigoSeguridad`.
+   */
+  rncComprador?: string;
+  /**
+   * Security code (`CodigoSeguridadeCF`) sent in the RFCE summary. Required to
+   * find an e-CF 32 < RD$250,000: summaries never get a trackId, so without it
+   * an accepted summary is reported as `No encontrado`.
+   */
+  codigoSeguridad?: string;
+}
+
+/** DGII service that answered `ECF.checkDocumentStatus`. */
+export type DocumentStatusSource = 'ConsultaTrackIds' | 'ConsultaEstado';
+
+/** Result of `ECF.checkDocumentStatus`. */
+export interface DocumentStatusResult {
+  /**
+   * Overall status of the e-NCF. When it was sent more than once, an accepted
+   * submission wins over later rejected resends.
+   * Only `No encontrado` means DGII has no record of the document.
+   */
+  status: TrackStatusEnum;
+  /** trackId of the submission that decided `status`, when there is one. */
+  trackId?: string;
+  /** Service that answered. */
+  source: DocumentStatusSource;
+  /** Every submission DGII has for the e-NCF (ConsultaTrackIds). */
+  trackIds?: SummaryTrackingStatusResponse[];
+  /** ConsultaEstado response, when the RFCE summary lookup was used. */
+  inquiry?: InquiryStatusResponse;
+}
+
 export enum CustomTrackStatusEnum {
   IN_QUEUE = 'En Cola',
   SENT_TO_DGII = 'Enviado a la DGII',
