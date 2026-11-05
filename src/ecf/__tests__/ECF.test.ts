@@ -395,6 +395,20 @@ describeWithCertificate('Test Authentication flow', () => {
       inquiry: { codigoSeguridad: securityCode },
     });
 
+    // With the total, ConsultaEstado is asked directly (one request).
+    await expect(
+      ecf.checkDocumentStatus({
+        rncEmisor: rnc,
+        encf: noEcf,
+        rncComprador,
+        codigoSeguridad: securityCode,
+        montoTotal: JsonECF32Summary.RFCE.Encabezado.Totales.MontoTotal,
+      })
+    ).resolves.toMatchObject({
+      status: TrackStatusEnum.ACCEPTED,
+      source: 'ConsultaEstado',
+    });
+
     // Without the exact security code the accepted summary cannot be found.
     await expect(
       ecf.checkDocumentStatus({

@@ -192,6 +192,70 @@ describe('ECF.checkDocumentStatus', () => {
     expect(mock.history.get).toHaveLength(1);
   });
 
+  describe('with montoTotal', () => {
+    it('asks only ConsultaEstado for an RFCE summary (one request)', async () => {
+      mock.onGet(INQUIRY_STATUS).reply(200, { codigo: 1, estado: 'Aceptado' });
+
+      const result = await ecf.checkDocumentStatus({
+        rncEmisor,
+        encf: 'E320000000010',
+        rncComprador,
+        codigoSeguridad: 'ABC123',
+        montoTotal: 637.2,
+      });
+
+      expect(result.status).toBe(TrackStatusEnum.ACCEPTED);
+      expect(result.source).toBe('ConsultaEstado');
+      expect(mock.history.get.map((req) => req.url)).toEqual([INQUIRY_STATUS]);
+    });
+
+    it('throws without a security code for an RFCE summary, without calling DGII', async () => {
+      await expect(
+        ecf.checkDocumentStatus({
+          rncEmisor,
+          encf: 'E320000000011',
+          rncComprador,
+          montoTotal: '1000.00',
+        })
+      ).rejects.toThrow(/codigoSeguridad is required/);
+      expect(mock.history.get).toHaveLength(0);
+    });
+
+    it('asks only ConsultaTrackIds for an e-CF 32 of RD$250,000 or more', async () => {
+      mock.onGet(TRACK_IDS).reply(400, trackIdNotFound);
+
+      const result = await ecf.checkDocumentStatus({
+        rncEmisor,
+        encf: 'E320000000012',
+        rncComprador,
+        codigoSeguridad: 'ABC123',
+        montoTotal: 250000,
+      });
+
+      expect(result).toEqual({
+        status: TrackStatusEnum.NOT_FOUND,
+        source: 'ConsultaTrackIds',
+        trackIds: [],
+      });
+      expect(mock.history.get.map((req) => req.url)).toEqual([TRACK_IDS]);
+    });
+
+    it('ignores montoTotal for other e-CF types', async () => {
+      mock
+        .onGet(TRACK_IDS)
+        .reply(200, [entry('track-31', TrackStatusEnum.ACCEPTED)]);
+
+      const result = await ecf.checkDocumentStatus({
+        rncEmisor,
+        encf: 'E310000000010',
+        montoTotal: 100,
+      });
+
+      expect(result.status).toBe(TrackStatusEnum.ACCEPTED);
+      expect(result.source).toBe('ConsultaTrackIds');
+    });
+  });
+
   it('rethrows errors that do not mean "not found"', async () => {
     mock.onGet(TRACK_IDS).reply(401);
 

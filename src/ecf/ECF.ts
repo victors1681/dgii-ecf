@@ -15,6 +15,7 @@ import {
   TrackStatusEnum,
   VoidNCFResponse,
 } from '../networking/types';
+import { isSummaryInvoice } from '../utils/isSummaryInvoice';
 
 /**
  * Order used to pick the overall status when an e-NCF was submitted more than
@@ -229,21 +230,51 @@ class ECF {
    *    e-NCF was sent more than once, an accepted submission wins over later
    *    rejected resends, and `En Proceso` wins over `Rechazado`.
    * 2. `ConsultaEstado` (`inquiryStatus`): RFCE summaries (e-CF 32 <
-   *    RD$250,000), which never get a trackId. Only used for an `E32` e-NCF
-   *    that ConsultaTrackIds does not know, and only when `codigoSeguridad`
-   *    is given.
+   *    RD$250,000), which never get a trackId.
+   *
+   * Pass `montoTotal` when you know it: the method then asks only the service
+   * that can answer (see `isSummaryInvoice`), one request instead of two for
+   * a summary. Without it, ConsultaTrackIds is asked first and ConsultaEstado
+   * is only used for an `E32` e-NCF it does not know, when `codigoSeguridad`
+   * is given.
    *
    * A document DGII has no record of resolves to `No encontrado` instead of
    * throwing; other errors (authentication, network, missing RNC comprador)
    * are thrown as `DgiiApiError`.
    *
+   * @throws Error when `montoTotal` marks an RFCE summary and
+   * `codigoSeguridad` is missing: the summary cannot be found without it.
    * @returns The overall status, the deciding trackId, and the raw responses
    */
-  checkDocumentStatus = async ({
+  checkDocumentStatus = async (
+    params: CheckDocumentStatusParams
+  ): Promise<DocumentStatusResult> => {
+    const { encf, montoTotal, codigoSeguridad } = params;
+    const knowsTotal = montoTotal !== undefined && montoTotal !== null;
+
+    if (knowsTotal && isSummaryInvoice(encf, montoTotal)) {
+      if (!codigoSeguridad) {
+        throw new Error(
+          `codigoSeguridad is required to check the RFCE summary ${encf} (e-CF 32 < RD$250,000)`
+        );
+      }
+      return this.checkSummaryStatus(params);
+    }
+
+    const byTrackIds = await this.checkTrackIdsStatus(params);
+    const canBeSummary = !knowsTotal && /^E32/i.test(encf) && !!codigoSeguridad;
+
+    if (byTrackIds.status !== TrackStatusEnum.NOT_FOUND || !canBeSummary) {
+      return byTrackIds;
+    }
+
+    return this.checkSummaryStatus(params);
+  };
+
+  /** `checkDocumentStatus` through ConsultaTrackIds (RNC emisor + e-NCF). */
+  private checkTrackIdsStatus = async ({
     rncEmisor,
     encf,
-    rncComprador,
-    codigoSeguridad,
   }: CheckDocumentStatusParams): Promise<DocumentStatusResult> => {
     try {
       const trackIds =
@@ -264,16 +295,20 @@ class ECF {
       }
     }
 
-    const isSummaryCandidate = /^E32/i.test(encf) && !!codigoSeguridad;
+    return {
+      status: TrackStatusEnum.NOT_FOUND,
+      source: 'ConsultaTrackIds',
+      trackIds: [],
+    };
+  };
 
-    if (!isSummaryCandidate) {
-      return {
-        status: TrackStatusEnum.NOT_FOUND,
-        source: 'ConsultaTrackIds',
-        trackIds: [],
-      };
-    }
-
+  /** `checkDocumentStatus` through ConsultaEstado, for RFCE summaries. */
+  private checkSummaryStatus = async ({
+    rncEmisor,
+    encf,
+    rncComprador,
+    codigoSeguridad,
+  }: CheckDocumentStatusParams): Promise<DocumentStatusResult> => {
     const inquiry = await this._api.inquiryStatusApi(
       rncEmisor,
       encf,

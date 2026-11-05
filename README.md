@@ -331,6 +331,8 @@ await ecf.authenticate();
 const result = await ecf.checkDocumentStatus({
   rncEmisor,
   encf,
+  // Optional: with the total only the service that can answer is asked
+  montoTotal,
   // Only needed for an RFCE summary (e-CF 32 < 250K):
   rncComprador,
   codigoSeguridad,
@@ -371,12 +373,25 @@ switch (result.status) {
 How the status is decided:
 
 - When the e-NCF was sent more than once, an accepted submission wins over later rejected resends, and `En Proceso` wins over `Rechazado`. `trackId` is the submission that decided the status.
-- `ConsultaEstado` is only used for an `E32` e-NCF that `ConsultaTrackIds` does not know, and only when `codigoSeguridad` is given. Its response is returned in `inquiry`.
+- With `montoTotal`, only one service is asked: `ConsultaEstado` for an RFCE summary, `ConsultaTrackIds` for everything else. A summary then costs one request instead of two, and a missing `codigoSeguridad` throws before calling DGII.
+- Without `montoTotal`, `ConsultaTrackIds` is asked first, and `ConsultaEstado` is only used for an `E32` e-NCF it does not know, when `codigoSeguridad` is given. Its response is returned in `inquiry`.
 - "Not found" resolves to `No encontrado` instead of throwing. Other errors (authentication, network, missing RNC comprador) are still thrown as `DgiiApiError`.
 
 > **Important for RFCE summaries:** store the `CodigoSeguridadeCF` you send in
 > each summary. Without it, or with a different code, DGII answers
 > `No encontrado` even for an accepted summary, and a resend would be rejected.
+
+###### Summary or full e-CF 32 (`isSummaryInvoice`)
+
+An e-CF 32 with a total below RD$250,000 is sent as an RFCE summary (`sendSummary`); from RD$250,000 (inclusive) it is sent as a full e-CF (`sendElectronicDocument`). Use the same helper to route a document and to check it, so the two never disagree:
+
+```ts
+import { isSummaryInvoice, SUMMARY_INVOICE_LIMIT } from 'dgii-ecf';
+
+isSummaryInvoice('E320000000001', 249999.99); // true  -> sendSummary
+isSummaryInvoice('E320000000001', 250000); // false -> sendElectronicDocument
+isSummaryInvoice('E310000000001', 100); // false (only e-CF 32)
+```
 
 ###### Inquiry Status
 

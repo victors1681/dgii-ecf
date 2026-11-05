@@ -84,6 +84,12 @@ export interface CheckDocumentStatusParams {
    * an accepted summary is reported as `No encontrado`.
    */
   codigoSeguridad?: string;
+  /**
+   * Invoice total (`Totales.MontoTotal`). Optional; when given, only the
+   * service that can answer is asked: ConsultaEstado for an RFCE summary
+   * (see `isSummaryInvoice`), ConsultaTrackIds for everything else.
+   */
+  montoTotal?: number | string;
 }
 
 /** DGII service that answered `ECF.checkDocumentStatus`. */
