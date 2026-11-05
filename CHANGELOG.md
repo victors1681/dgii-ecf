@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-11-05
+
+### Added
+
+- **`checkDocumentStatus` tells whether DGII already received an e-NCF**:
+  use it before retrying a submission whose response was lost, since a
+  resend of a document DGII already has comes back `Rechazado`. It looks the
+  e-NCF up in `ConsultaTrackIds` (RNC emisor + e-NCF), and for an RFCE
+  summary (e-CF 32 < RD$250,000), which never gets a trackId, falls back to
+  `ConsultaEstado` when `codigoSeguridad` is given. When the e-NCF was sent
+  more than once, an accepted submission wins over later rejected resends.
+  A document DGII does not know resolves to `No encontrado` instead of
+  throwing the HTTP 400 `TrackId no encontrado.`. New types:
+  `CheckDocumentStatusParams`, `DocumentStatusResult`,
+  `DocumentStatusSource`.
+- **Response types are exported from the package root**: `TrackStatusEnum`,
+  `TrackingStatusResponse`, `SummaryTrackingStatusResponse`,
+  `InquiryStatusResponse` and the rest of `networking/types` can now be
+  imported from `dgii-ecf`, so `checkDocumentStatus` results can be compared
+  against `TrackStatusEnum`.
+
 ## [1.9.2] - 2026-10-21
 
 ### Fixed
