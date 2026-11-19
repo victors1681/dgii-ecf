@@ -1,6 +1,10 @@
 import { SignedXml } from 'xml-crypto';
 import { DOMParser } from '@xmldom/xmldom';
 import Digest from './custom/Digest';
+import {
+  limitEcfFieldLengthsInDocument,
+  TruncatedEcfField,
+} from '../utils/limitEcfFieldLengths';
 
 /**
  * Common DGII electronic document types.
@@ -14,6 +18,18 @@ export type DGIIDocumentType =
   | 'ACECF'
   | 'ANECF'
   | (string & {});
+
+export interface SignXmlOptions {
+  /**
+   * For an `ECF`, cut every free-text field longer than the DGII allows
+   * (e.g. `NombreItem` > 80) before signing. Default `true`: the DGII rejects
+   * an e-CF with a field over its limit and still consumes its e-NCF.
+   * Set `false` to sign the document exactly as given.
+   */
+  limitFieldLengths?: boolean;
+  /** Called once per field cut by `limitFieldLengths`, e.g. to log it. */
+  onFieldTruncated?: (info: TruncatedEcfField) => void;
+}
 
 /**
  * @deprecated Use DGIIDocumentType instead
@@ -106,6 +122,8 @@ class Signature {
    * @param rootElName - Optional root element name. If not provided, it will be auto-detected from the XML.
    *                     Common DGII types: 'ECF', 'RFCE', 'ARECF', 'ACECF', 'ANECF', 'SemillaModel'
    *                     Can also be any custom element like 'Postulacion', 'CustomDocument', etc.
+   * @param options - For an `ECF`, free-text fields over their DGII limit are cut before
+   *                  signing unless `limitFieldLengths` is `false` (see {@link SignXmlOptions}).
    * @returns The signed XML document with embedded <Signature> element
    * @throws Error if XML is invalid or cannot be parsed
    *
@@ -121,7 +139,11 @@ class Signature {
    * // Sign any arbitrary XML document
    * const signedPostulacion = signature.signXml(postulacionXml);
    */
-  signXml = (xml: string, rootElName?: DGIIDocumentType): string => {
+  signXml = (
+    xml: string,
+    rootElName?: DGIIDocumentType,
+    options: SignXmlOptions = {}
+  ): string => {
     // Parse XML once with strict error handling - validates regardless of explicit/auto-detect path
     const doc = this.parseXmlStrict(xml);
 
@@ -150,6 +172,13 @@ class Signature {
       digestAlgorithm: 'http://myDigestAlgorithm',
       isEmptyUri: true,
     });
+
+    // The signature covers the final text, so fields are cut before signing.
+    if (elementName === 'ECF' && options.limitFieldLengths !== false) {
+      limitEcfFieldLengthsInDocument(doc, {
+        onFieldTruncated: options.onFieldTruncated,
+      });
+    }
 
     // Reuse the same parsed DOM - no need to parse twice
     this.cleanNodes(doc);

@@ -145,6 +145,31 @@ const signedCustom = signature.signXml(anyXmlDocument);
 const signedWithExplicitRoot = signature.signXml(ecfXml, 'ECF');
 ```
 
+#### Field length limits (automatic)
+
+When the document is an `ECF`, `signXml` cuts every free-text field that is
+longer than the DGII XSD allows before signing it, e.g. `NombreItem` (80),
+`RazonSocialComprador` (150), `DireccionComprador` (100) or
+`RazonModificacion` (90). The DGII rejects an e-CF with a field over its
+limit **and still consumes its e-NCF**, so the number is lost. Formatted
+fields (emails, dates, RNC, amounts) are never cut. The full list is
+`ECF_FIELD_MAX_LENGTHS`.
+
+```js
+const signedECF = signature.signXml(ecfXml, 'ECF', {
+  // optional: log what was cut
+  onFieldTruncated: ({ field, maxLength, original }) =>
+    console.warn(`${field} cut to ${maxLength}: ${original}`),
+});
+
+// Opt out and sign the document exactly as given
+const asIs = signature.signXml(ecfXml, 'ECF', { limitFieldLengths: false });
+
+// Or cut the JSON payload yourself before Transformer.json2xml()
+import { limitEcfFieldLengths } from 'dgii-ecf';
+const xml = new Transformer().json2xml(limitEcfFieldLengths(payload));
+```
+
 ### Send Electronic Document eFC
 
 Send credit invoice using the api method

@@ -8,3 +8,4 @@ export * from './convertECF32ToRFCE';
 export * from './validateXMLCertificate';
 export * from './customTransformers';
 export * from './isSummaryInvoice';
+export * from './limitEcfFieldLengths';
