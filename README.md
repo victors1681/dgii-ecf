@@ -151,8 +151,10 @@ When the document is an `ECF`, `signXml` cuts every free-text field that is
 longer than the DGII XSD allows before signing it, e.g. `NombreItem` (80),
 `RazonSocialComprador` (150), `DireccionComprador` (100) or
 `RazonModificacion` (90). The DGII rejects an e-CF with a field over its
-limit **and still consumes its e-NCF**, so the number is lost. Formatted
-fields (emails, dates, RNC, amounts) are never cut. The full list is
+limit **and still consumes its e-NCF**, so the number is lost. Only
+descriptive text (names, addresses, contacts, descriptions) is cut:
+identifiers such as `CodigoItem` or `NumeroFacturaInterna` and formatted
+fields (emails, URLs, dates, RNC, amounts) are never touched. The full list is
 `ECF_FIELD_MAX_LENGTHS`.
 
 ```js

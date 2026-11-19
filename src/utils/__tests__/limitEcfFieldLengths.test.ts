@@ -82,6 +82,22 @@ describe('ECF_FIELD_MAX_LENGTHS', () => {
   it('does not cut fields with a format, such as emails', () => {
     expect(ECF_FIELD_MAX_LENGTHS.CorreoEmisor).toBeUndefined();
     expect(ECF_FIELD_MAX_LENGTHS.CorreoComprador).toBeUndefined();
+    expect(ECF_FIELD_MAX_LENGTHS.WebSite).toBeUndefined();
+  });
+
+  it('does not cut identifiers: two codes sharing a prefix would collide', () => {
+    for (const field of [
+      'CodigoItem',
+      'TipoCodigo',
+      'CodigoVendedor',
+      'CodigoInternoComprador',
+      'NumeroFacturaInterna',
+      'NumeroOrdenCompra',
+      'Sucursal',
+      'Placa',
+    ]) {
+      expect(ECF_FIELD_MAX_LENGTHS[field]).toBeUndefined();
+    }
   });
 });
 
@@ -105,6 +121,41 @@ describe('limitEcfFieldLengths (JSON)', () => {
     ]);
     // The input is not modified.
     expect(payload.ECF.DetallesItems.Item[0].NombreItem).toBe(NOMBRE_LARGO);
+  });
+
+  it('leaves identifiers untouched, however long', () => {
+    const codigo = 'SKU-'.padEnd(60, 'X');
+    const result = limitEcfFieldLengths({
+      ECF: { DetallesItems: { Item: { CodigoItem: codigo } } },
+    });
+    expect(result.ECF.DetallesItems.Item.CodigoItem).toBe(codigo);
+  });
+
+  it('measures a number in a text field by its string form', () => {
+    const reported: string[] = [];
+    const result = limitEcfFieldLengths(
+      {
+        ECF: {
+          Item: {
+            NombreItem: 12345,
+            DescripcionSubtotal: -1.2345678901234567e-308,
+          },
+        },
+      },
+      { onFieldTruncated: (info) => reported.push(info.field) }
+    );
+    // Numbers that fit stay numbers.
+    expect(result.ECF.Item.NombreItem).toBe(12345);
+    expect(result.ECF.Item.DescripcionSubtotal).toBe(-1.2345678901234567e-308);
+    expect(reported).toEqual([]);
+  });
+
+  it('every limit fits any number json2xml can write', () => {
+    // The longest String(number) is ~24 chars ("-1.2345678901234567e-308"),
+    // so a number can never overflow a listed field.
+    expect(
+      Math.min(...Object.values(ECF_FIELD_MAX_LENGTHS))
+    ).toBeGreaterThanOrEqual(String(-1.2345678901234567e-308).length);
   });
 
   it('handles the { _text } form', () => {

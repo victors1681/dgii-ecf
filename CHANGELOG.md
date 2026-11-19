@@ -15,8 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `RazonModificacion` 90, …) is trimmed and cut before signing. The DGII
   rejected such documents ("The actual length is greater than the MaxLength
   value") and still marked their e-NCF as used. Characters are counted as
-  Unicode code points, and formatted fields (emails, dates, RNC, amounts)
-  are never cut. Opt out with `signXml(xml, 'ECF', { limitFieldLengths:
+  Unicode code points. Only descriptive text is cut: identifiers
+  (`CodigoItem`, `TipoCodigo`, `NumeroFacturaInterna`, …) and formatted
+  fields (emails, URLs, dates, RNC, amounts) are never touched. Opt out with `signXml(xml, 'ECF', { limitFieldLengths:
   false })`; `onFieldTruncated` reports each cut field. Other document
   types (RFCE, ARECF, ACECF, ANECF, custom) are signed unchanged.
 

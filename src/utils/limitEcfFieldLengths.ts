@@ -1,51 +1,38 @@
 /**
- * Maximum length of the free-text fields of an e-CF, taken from the DGII XSD
- * (e-CF 31 v1.0 `AlfNum<N>Type`; `RazonModificacion` from the e-CF 33/34 XSD).
+ * Maximum length of the descriptive free-text fields of an e-CF, taken from
+ * the DGII XSD (e-CF 31 v1.0 `AlfNum<N>Type`; `RazonModificacion` from the
+ * e-CF 33/34 XSD).
  *
  * The DGII rejects the whole document when one of these is too long
  * ("The actual length is greater than the MaxLength value") and still marks
  * its e-NCF as used, so the number is lost. Cutting the text is always better
  * than that: the full text of an item can travel in `DescripcionItem` (1000).
  *
- * Fields with a format (emails, dates, RNC, amounts, codes) are deliberately
- * NOT listed: cutting them would only produce a different invalid value.
+ * Only names, addresses, contacts and descriptions are listed. Identifiers
+ * (`CodigoItem`, `TipoCodigo`, `CodigoVendedor`, `CodigoInternoComprador`,
+ * `NumeroFacturaInterna`, `NumeroOrdenCompra`, `Sucursal`, `Placa`, …) and
+ * formatted fields (emails, URLs, dates, RNC, amounts) are deliberately NOT
+ * listed: two codes that share a prefix would collide once cut, and a cut
+ * formatted value is just a different invalid value. An over-long identifier
+ * must be fixed at its source.
  */
 export const ECF_FIELD_MAX_LENGTHS: Readonly<Record<string, number>> = {
   // Emisor
   RazonSocialEmisor: 150,
   NombreComercial: 150,
-  Sucursal: 20,
   DireccionEmisor: 100,
-  WebSite: 50,
   ActividadEconomica: 100,
-  CodigoVendedor: 60,
-  NumeroFacturaInterna: 20,
-  ZonaVenta: 20,
-  RutaVenta: 20,
   InformacionAdicionalEmisor: 250,
   // Comprador
   RazonSocialComprador: 150,
   ContactoComprador: 80,
   DireccionComprador: 100,
   InformacionAdicionalComprador: 150,
-  CodigoInternoComprador: 20,
   DireccionEntrega: 100,
   ContactoEntrega: 100,
-  NumeroOrdenCompra: 20,
-  // Transporte / información adicional
-  Conductor: 20,
-  NumeroAlbaran: 20,
-  NumeroContenedor: 100,
-  NumeroEmbarque: 25,
-  Placa: 7,
-  Ficha: 10,
-  RutaTransporte: 20,
-  ZonaTransporte: 20,
   // Detalle
   NombreItem: 80,
   DescripcionItem: 1000,
-  TipoCodigo: 14,
-  CodigoItem: 35,
   DescripcionSubtotal: 40,
   DescripcionDescuentooRecargo: 45,
   // Información de referencia (notas de crédito/débito)
@@ -145,7 +132,8 @@ export const limitEcfFieldLengthsInDocument = (
 /**
  * Same as {@link limitEcfFieldLengthsInDocument} for the JSON payload given to
  * `Transformer.json2xml()` (compact xml-js form: a field is a string, a number,
- * or `{ _text: string }`). Returns a new object; the input is not modified.
+ * or `{ _text: string }`). A number longer than its field's limit becomes the
+ * cut string. Returns a new object; the input is not modified.
  */
 export const limitEcfFieldLengths = <T>(
   payload: T,
@@ -157,6 +145,14 @@ export const limitEcfFieldLengths = <T>(
 
     if (maxLength !== undefined && typeof node === 'string') {
       return cut(key as string, node, maxLength);
+    }
+    // A number in a text field is written as its string form by json2xml, so
+    // it is measured (and, if too long, cut) as that same text.
+    if (maxLength !== undefined && typeof node === 'number') {
+      const text = String(node);
+      return Array.from(text).length > maxLength
+        ? cut(key as string, text, maxLength)
+        : node;
     }
     if (Array.isArray(node)) {
       return node.map((item) => walk(item, key));
