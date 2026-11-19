@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-11-19
+
+### Changed
+
+- **`signXml` cuts e-CF free-text fields to their DGII limit**: when the
+  root is `ECF`, every free-text field longer than the DGII XSD allows
+  (`NombreItem` 80, `RazonSocialComprador` 150, `DireccionComprador` 100,
+  `RazonModificacion` 90, …) is trimmed and cut before signing. The DGII
+  rejected such documents ("The actual length is greater than the MaxLength
+  value") and still marked their e-NCF as used. Characters are counted as
+  Unicode code points. Only descriptive text is cut: identifiers
+  (`CodigoItem`, `TipoCodigo`, `NumeroFacturaInterna`, …) and formatted
+  fields (emails, URLs, dates, RNC, amounts) are never touched. Opt out with `signXml(xml, 'ECF', { limitFieldLengths:
+  false })`; `onFieldTruncated` reports each cut field. Other document
+  types (RFCE, ARECF, ACECF, ANECF, custom) are signed unchanged.
+
+### Added
+
+- `limitEcfFieldLengths` (JSON payload), `limitEcfFieldLengthsInDocument`
+  (parsed XML), `truncateEcfText` and `ECF_FIELD_MAX_LENGTHS`.
+
 ## [1.10.0] - 2026-11-05
 
 ### Added
